@@ -1,0 +1,3252 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Calliope Teachable Machine</title>
+
+<!-- TensorFlow.js / MobileNet -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+<!-- JSZip for creating zip files -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- FileSaver.js for downloading files -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<!-- Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+<style>
+  /* Material 3 Design System Variables - inspired by Calliope colors */
+  :root {
+    /* Primary color - Calliope green */
+    --md-sys-color-primary: 125, 190, 66;
+    --md-sys-color-on-primary: 255, 255, 255;
+    --md-sys-color-primary-container: 223, 242, 207;
+    --md-sys-color-on-primary-container: 28, 52, 8;
+    
+    /* Secondary color - Calliope blue */
+    --md-sys-color-secondary: 67, 160, 219;
+    --md-sys-color-on-secondary: 255, 255, 255;
+    --md-sys-color-secondary-container: 207, 235, 251;
+    --md-sys-color-on-secondary-container: 8, 37, 52;
+    
+    /* Tertiary color - Calliope light green */
+    --md-sys-color-tertiary: 187, 239, 83;
+    --md-sys-color-on-tertiary: 219, 251, 128;
+    --md-sys-color-tertiary-container: 187, 239, 83;
+    --md-sys-color-on-tertiary-container: 219, 251, 128;
+
+    --md-sys-color-hover: 152, 163, 167;
+    
+    /* Error colors */
+    --md-sys-color-error: 186, 26, 26;
+    --md-sys-color-on-error: 255, 255, 255;
+    --md-sys-color-error-container: 255, 218, 214;
+    --md-sys-color-on-error-container: 65, 0, 2;
+    
+    /* Surface colors */
+    --md-sys-color-surface: 255, 255, 255;
+    --md-sys-color-on-surface: 28, 27, 31;
+    --md-sys-color-surface-variant: 232, 234, 237;
+    --md-sys-color-on-surface-variant: 70, 70, 79;
+    --md-sys-color-outline: 118, 118, 128;
+    --md-sys-color-outline-variant: 202, 204, 211;
+    
+    /* Background */
+    --md-sys-color-background: 250, 250, 253;
+    --md-sys-color-on-background: 28, 27, 31;
+    
+    /* Elevations */
+    --md-sys-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --md-sys-elevation-2: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --md-sys-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+    
+    /* Typography */
+    --md-sys-typescale-body-medium-font: 'Inter', system-ui, -apple-system, sans-serif;
+    --md-sys-typescale-body-medium-size: 14px;
+    --md-sys-typescale-body-medium-line-height: 20px;
+    --md-sys-typescale-label-large-font: 'Inter', system-ui, -apple-system, sans-serif;
+    --md-sys-typescale-label-large-size: 14px;
+    --md-sys-typescale-label-large-line-height: 20px;
+    --md-sys-typescale-title-medium-font: 'Inter', system-ui, -apple-system, sans-serif;
+    --md-sys-typescale-title-medium-size: 16px;
+    --md-sys-typescale-title-medium-line-height: 24px;
+    
+    /* Border radius */
+    --md-sys-shape-corner-small: 8px;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-shape-corner-extra-large: 28px;
+
+      /* Calliope Button Colors – synchron zu Header-Buttons */
+  --btn-green: 83, 100%, 48%;      /* hsl(83,100%,48%) */
+  --btn-green-light: 83, 100%, 58%;
+  --btn-text-dark: 0, 0%, 0%;      /* schwarz */
+  --btn-text-light: 0, 0%, 100%;   /* weiß */
+  
+  }
+  
+  /* Aufnahme starten → wie Modell trainieren */
+button.primary-action {
+    background: rgb(var(--md-sys-color-primary));
+    color: rgb(var(--md-sys-color-on-primary));
+    border: none;
+    border-radius: var(--md-sys-shape-corner-small);
+    padding: 10px 24px;
+    font-family: var(--md-sys-typescale-label-large-font);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: var(--md-sys-elevation-1);
+}
+
+button.primary-action:hover {
+    box-shadow: var(--md-sys-elevation-2);
+    background: hsl(var(--md-sys-color-hover), 0.9);
+}
+
+
+
+  * {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: rgb(var(--md-sys-color-background));
+    color: rgb(var(--md-sys-color-on-background));
+    font-family: var(--md-sys-typescale-body-medium-font);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+  }
+  
+  .app {
+    display: flex;
+    height: 100vh;
+    padding: 0;
+    gap: 16px;
+  }
+  
+  .panel {
+    background: rgb(var(--md-sys-color-surface));
+    border-radius: var(--md-sys-shape-corner-large);
+    padding: 16px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--md-sys-elevation-1);
+  }
+  
+  h1 {
+    font-family: var(--md-sys-typescale-title-medium-font);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: rgb(var(--md-sys-color-on-surface));
+  }
+  
+  label {
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    display: block;
+    margin-bottom: 4px;
+  }
+  
+  /* Button styles - Material 3 filled button */
+  button {
+    background: rgb(var(--md-sys-color-primary));
+    color: rgb(var(--md-sys-color-on-primary));
+    border: none;
+    border-radius: var(--md-sys-shape-corner-small);
+    padding: 10px 24px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    font-family: var(--md-sys-typescale-label-large-font);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    letter-spacing: 0.1px;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: var(--md-sys-elevation-1);
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  button:hover {
+    box-shadow: var(--md-sys-elevation-2);
+    background: hsl(var(--md-sys-color-hover), 0.9);
+  }
+  
+  button:active {
+    box-shadow: var(--md-sys-elevation-1);
+  }
+  
+  button:disabled {
+    background: rgba(var(--md-sys-color-on-surface), 0.12);
+    color: rgba(var(--md-sys-color-on-surface), 0.38);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  
+  /* Ghost button - Material 3 outlined button */
+  button.ghost {
+    background: transparent;
+    color: rgb(var(--md-sys-color-hover));
+    border: 1px solid rgb(var(--md-sys-color-outline));
+    box-shadow: none;
+  }
+  
+  button.ghost:hover {
+    background: rgb(var(--md-sys-color-hover));
+    border-color: rgb(var(--md-sys-color-hover));
+    box-shadow: none;
+  }
+  
+  button.ghost:active {
+    background: rgb(var(--md-sys-color-hover));
+  }
+  
+  button.active {
+    background: rgb(var(--md-sys-color-tertiary));
+    color: rgb(var(--md-sys-color-on-tertiary), 0.9);
+  }
+  
+  button.active:hover {
+    background: rgb(var(--md-sys-color-tertiary));
+  }
+  
+  /* Input styles */
+  input[type="text"], 
+  input[type="number"], 
+  select {
+    padding: 8px 12px;
+    border-radius: var(--md-sys-shape-corner-small);
+    border: 1px solid rgb(var(--md-sys-color-outline));
+    background: rgb(var(--md-sys-color-surface));
+    color: rgb(var(--md-sys-color-on-surface));
+    font-family: var(--md-sys-typescale-body-medium-font);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  
+  input[type="text"]:focus, 
+  input[type="number"]:focus, 
+  select:focus {
+    outline: none;
+    border-color: rgb(var(--md-sys-color-primary));
+    border-width: 2px;
+    padding: 7px 11px;
+  }
+  
+  /* Class list */
+  .class-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .class-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    cursor: pointer;
+    background: rgb(var(--md-sys-color-surface-variant), 0.3);
+    transition: all 0.2s;
+  }
+  
+  .class-item:hover {
+    background: rgb(var(--md-sys-color-surface-variant));
+    box-shadow: var(--md-sys-elevation-1);
+  }
+  
+  .class-item.selected {
+    background: rgb(var(--md-sys-color-primary-container));
+    border: 2px solid rgb(var(--md-sys-color-primary));
+    padding: 11px;
+  }
+  
+  .class-name {
+    flex-grow: 1;
+    font-weight: 500;
+    color: rgb(var(--md-sys-color-on-surface));
+  }
+  
+  .class-item.selected .class-name {
+    color: rgb(var(--md-sys-color-on-primary-container));
+  }
+  
+  .class-actions {
+    display: flex;
+    gap: 4px;
+  }
+  
+  .class-actions button {
+    padding: 6px 12px;
+    min-height: 32px;
+  }
+  
+/* Container für die aufgenommenen Bilder */
+#thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 Bilder pro Reihe */
+  gap: 8px;
+  max-height: calc(3 * 80px + 2 * 8px); /* 3 Reihen sichtbar (80px Höhe + Gap) */
+  overflow-y: auto;                      /* scrollbar */
+  padding-right: 4px;                    /* damit Scrollbar nichts überdeckt */
+}
+
+/* Jedes Thumbnail-Bild */
+.thumb {
+  width: 100%;
+  height: 80px;          /* einheitliche Höhe */
+  object-fit: cover;     /* Bilder sauber zugeschnitten */
+  border-radius: 4px;
+}
+
+  
+  .video-wrap { 
+    position: relative; 
+    border-radius: var(--md-sys-shape-corner-large);
+    overflow: hidden; 
+    background: #000; 
+    height: calc(100vh - 48px); 
+    width: 100%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    box-shadow: var(--md-sys-elevation-2);
+  }
+  
+  video { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+  }
+  
+  .overlay { 
+    position: absolute; 
+    right: 16px; 
+    top: 16px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-end; 
+    gap: 8px; 
+    z-index: 2; 
+  }
+  
+  .overlay button { 
+    background: rgba(var(--md-sys-color-surface), 0.9);
+    color: rgb(var(--md-sys-color-on-surface));
+    backdrop-filter: blur(10px);
+  }
+  
+  .overlay button:hover {
+    background: rgb(var(--md-sys-color-surface));
+  }
+  
+  .status { 
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: var(--md-sys-shape-corner-small);
+    background: rgba(var(--md-sys-color-surface), 0.9);
+    color: rgb(var(--md-sys-color-on-surface));
+    backdrop-filter: blur(10px);
+    font-weight: 500;
+  }
+  
+  .status.light { 
+    background: transparent;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+  }
+  
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  top: 6px;
+  left: 24px;
+  z-index: 5;
+}
+
+/* Nicht aktiv */
+.tab {
+  padding: 10px 22px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 2px solid #000000;      /* schwarzer Rahmen */
+  background: #ffffff;             /* weißer Hintergrund */
+  color: #000000;                  /* schwarzer Text */
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  user-select: none;
+}
+
+/* Hover – nicht aktiv */
+.tab:hover {
+  background: #f2f2f2;             /* leicht abgedunkeltes Weiß */
+}
+
+/* Aktiv */
+.tab.active {
+  background: #bbef53;             /* Primärfarbe */
+  border-color: #bbef53;
+  color: #000000;                  /* schwarzer Text */
+  font-weight: 600;
+}
+
+/* Hover (aktiv) */
+.tab.active:hover {
+  background: #d4f97c;             /* hellere Primärfarbe */
+}
+
+/* Klickzustand */
+.tab:active {
+  background: #94a2a6 !important;  /* Klickfarbe */
+  border-color: #94a2a6 !important;
+  color: #ffffff !important;       /* weißer Text beim Klick */
+}
+
+  
+  .prediction-result { 
+    margin-top: 12px; 
+    padding: 12px; 
+    background: rgb(var(--md-sys-color-surface-variant), 0.5);
+    border-radius: var(--md-sys-shape-corner-medium);
+  }
+  
+  .prediction-bar { 
+    height: 24px; 
+    background: rgb(var(--md-sys-color-surface-variant));
+    border-radius: var(--md-sys-shape-corner-small);
+    margin-top: 8px; 
+    overflow: hidden; 
+  }
+  
+  .prediction-fill { 
+    height: 100%; 
+    background: rgb(var(--md-sys-color-primary));
+    transition: width 0.3s; 
+    border-radius: var(--md-sys-shape-corner-small);
+  }
+  
+  .model-info { 
+    margin-top: 12px; 
+    font-size: 13px; 
+    color: rgb(var(--md-sys-color-on-surface-variant));
+  }
+  
+  .button-hint { 
+    font-size: 12px; 
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    margin-top: 6px;
+    line-height: 16px;
+  }
+  
+  /* File input label styling */
+  label.file-label {
+    background: transparent;
+    color: rgb(var(--md-sys-color-primary));
+    border: 1px solid rgb(var(--md-sys-color-outline));
+    border-radius: var(--md-sys-shape-corner-small);
+    padding: 10px 24px;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: var(--md-sys-typescale-label-large-font);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    min-height: 40px;
+    transition: all 0.2s;
+  }
+  
+  label.file-label:hover {
+    background: rgba(var(--md-sys-color-primary), 0.08);
+    border-color: rgb(var(--md-sys-color-primary));
+  }
+  
+  label.file-label:active {
+    background: rgba(var(--md-sys-color-primary), 0.12);
+  }
+  /* Dateiauswahl-Button – gleiche Höhe wie "Leeren" */
+label.file-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;                 /* exakt gleiche Höhe */
+  padding: 24px;           /* vertikal nun durch height geregelt */
+  box-sizing: border-box;
+}
+  /* Hamburger Menu */
+  .menu-container {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 100;
+  }
+  
+  .menu-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgb(var(--md-sys-color-surface));
+    color: rgb(var(--md-sys-color-on-surface));
+    border: none;
+    box-shadow: var(--md-sys-elevation-2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-height: unset;
+    transition: all 0.2s;
+  }
+  
+  .menu-button:hover {
+    background: rgb(var(--md-sys-color-surface-variant));
+    box-shadow: var(--md-sys-elevation-3);
+  }
+  
+  .menu-button svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .menu-items {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    background: rgb(var(--md-sys-color-surface));
+    border-radius: var(--md-sys-shape-corner-medium);
+    box-shadow: var(--md-sys-elevation-3);
+    overflow: hidden;
+    display: none;
+    min-width: 200px;
+  }
+  
+  .menu-items.open {
+    display: block;
+    animation: menuSlideIn 0.2s cubic-bezier(0.2, 0, 0, 1);
+  }
+  
+  @keyframes menuSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .menu-item {
+    padding: 12px 24px;
+    cursor: pointer;
+    color: rgb(var(--md-sys-color-on-surface));
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    transition: background 0.2s;
+    display: block;
+    text-align: left;
+  }
+  
+  .menu-item:hover {
+    background: rgba(var(--md-sys-color-primary), 0.08);
+  }
+  
+  .menu-item.active {
+    background: rgb(var(--md-sys-color-secondary-container));
+    color: rgb(var(--md-sys-color-on-secondary-container));
+  }
+  
+  /* Try out view styles */
+  .try-out-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 20px;
+  }
+  
+  .try-out-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .try-out-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgb(var(--md-sys-color-outline));
+  }
+  
+  .status-indicator.connected {
+    background: rgb(var(--md-sys-color-primary));
+    box-shadow: 0 0 8px rgba(var(--md-sys-color-primary), 0.5);
+  }
+  
+  .prediction-display {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    background: rgba(var(--md-sys-color-surface), 0.95);
+    color: rgb(var(--md-sys-color-on-surface));
+    padding: 12px 20px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    font-size: 18px;
+    font-weight: 600;
+    display: none;
+    z-index: 3;
+    box-shadow: var(--md-sys-elevation-3);
+    backdrop-filter: blur(10px);
+  }
+  
+  .bluetooth-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .bluetooth-status {
+    font-size: 13px;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+  }
+  
+  .bluetooth-device {
+    padding: 12px;
+    border: 1px solid rgb(var(--md-sys-color-outline-variant));
+    border-radius: var(--md-sys-shape-corner-medium);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .bluetooth-device:hover {
+    background: rgb(var(--md-sys-color-surface-variant), 0.5);
+    border-color: rgb(var(--md-sys-color-primary));
+  }
+  
+  .bluetooth-device.selected {
+    background: rgb(var(--md-sys-color-primary-container));
+    border-color: rgb(var(--md-sys-color-primary));
+  }
+  
+  /* View adjustments */
+  .view {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .left-panel {
+    width: 340px;
+    flex-shrink: 0;
+  }
+  
+ .right-panel {
+    flex-grow: 1;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding-left: 16px;
+    box-sizing: border-box;
+  }
+
+  
+  /* Import dialog styles */
+  .import-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgb(var(--md-sys-color-surface));
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    padding: 24px;
+    box-shadow: var(--md-sys-elevation-3);
+    z-index: 1000;
+    max-width: 400px;
+    width: 90%;
+  }
+  
+  .import-dialog h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    font-weight: 600;
+  }
+  
+  .import-dialog .class-option {
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid rgb(var(--md-sys-color-outline-variant));
+    border-radius: var(--md-sys-shape-corner-medium);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .import-dialog .class-option:hover {
+    background: rgb(var(--md-sys-color-surface-variant), 0.5);
+    border-color: rgb(var(--md-sys-color-primary));
+  }
+  
+  .import-dialog .class-option.selected {
+    background: rgb(var(--md-sys-color-primary-container));
+    border-color: rgb(var(--md-sys-color-primary));
+    border-width: 2px;
+    padding: 11px;
+  }
+  
+  .import-dialog .buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+  
+  .dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    backdrop-filter: blur(4px);
+  }
+  
+  /* Model load notification */
+  .model-load-notification {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgb(var(--md-sys-color-tertiary));
+    color: rgb(var(--md-sys-color-on-tertiary));
+    padding: 16px 24px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    box-shadow: var(--md-sys-elevation-3);
+    z-index: 1000;
+    display: none;
+    animation: slideUp 0.3s cubic-bezier(0.2, 0, 0, 1);
+    font-weight: 500;
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0; 
+      transform: translateX(-50%) translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(-50%) translateY(0); 
+    }
+  }
+  
+  /* Project buttons styling */
+  .project-buttons {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgb(var(--md-sys-color-outline-variant));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Divider */
+  hr {
+    border: none;
+    border-top: 1px solid rgb(var(--md-sys-color-outline-variant));
+    margin: 16px 0;
+  }
+  
+  /* Model details dialog styles */
+  .model-details-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgb(var(--md-sys-color-surface));
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    padding: 24px;
+    box-shadow: var(--md-sys-elevation-3);
+    z-index: 1000;
+    max-width: 90%;
+    width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+  }
+  
+  .model-details-dialog h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: rgb(var(--md-sys-color-primary));
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .model-details-dialog .close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    min-height: unset;
+    box-shadow: none;
+  }
+  
+  .model-details-dialog .close-btn:hover {
+    background: rgb(var(--md-sys-color-surface-variant), 0.5);
+  }
+  
+  .model-details-tabs {
+    display: flex;
+    margin-bottom: 24px;
+    gap: 4px;
+    background: rgb(var(--md-sys-color-surface-variant), 0.3);
+    padding: 4px;
+    border-radius: var(--md-sys-shape-corner-medium);
+  }
+  
+  .model-details-tab {
+    padding: 10px 24px;
+    cursor: pointer;
+    border-radius: var(--md-sys-shape-corner-small);
+    transition: all 0.2s;
+    flex: 1;
+    text-align: center;
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+  }
+  
+  .model-details-tab:hover {
+    background: rgba(var(--md-sys-color-primary), 0.08);
+  }
+  
+  .model-details-tab.active {
+    background: rgb(var(--md-sys-color-secondary-container));
+    color: rgb(var(--md-sys-color-on-secondary-container));
+    font-weight: 600;
+  }
+  
+  .model-details-content {
+    display: none;
+  }
+  
+  .model-details-content.active {
+    display: block;
+  }
+  
+  .chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 24px;
+    background: rgb(var(--md-sys-color-surface));
+    padding: 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+  }
+  
+  .confusion-matrix {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .confusion-matrix table {
+    border-collapse: collapse;
+    margin-top: 16px;
+    box-shadow: var(--md-sys-elevation-1);
+    border-radius: var(--md-sys-shape-corner-small);
+    overflow: hidden;
+  }
+  
+  .confusion-matrix th, .confusion-matrix td {
+    border: 1px solid rgb(var(--md-sys-color-outline-variant));
+    padding: 12px;
+    text-align: center;
+    min-width: 60px;
+    font-size: 13px;
+  }
+  
+  .confusion-matrix th {
+    background: rgb(var(--md-sys-color-surface-variant));
+    font-weight: 600;
+    color: rgb(var(--md-sys-color-on-surface));
+  }
+  
+  .confusion-matrix .correct {
+    background: rgba(var(--md-sys-color-primary), 0.15);
+    font-weight: 600;
+  }
+  
+  .confusion-matrix .incorrect {
+    background: rgba(var(--md-sys-color-error), 0.15);
+  }
+  
+  .model-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .stat-card {
+    background: rgb(var(--md-sys-color-surface-variant), 0.3);
+    border-radius: var(--md-sys-shape-corner-medium);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--md-sys-elevation-1);
+    transition: all 0.2s;
+  }
+  
+  .stat-card:hover {
+    box-shadow: var(--md-sys-elevation-2);
+  }
+  
+  .stat-card .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: rgb(var(--md-sys-color-primary));
+    line-height: 1.2;
+  }
+  
+  .stat-card .stat-label {
+    font-size: 14px;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  
+  .section-description {
+    background: rgb(var(--md-sys-color-primary-container), 0.5);
+    border-left: 4px solid rgb(var(--md-sys-color-primary));
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border-radius: 0 var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0;
+    font-size: 14px;
+    color: rgb(var(--md-sys-color-on-surface));
+    line-height: 1.6;
+  }
+  
+  .section-description strong {
+    color: rgb(var(--md-sys-color-primary));
+    font-weight: 600;
+  }
+  
+  .value-guideline {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: var(--md-sys-shape-corner-small);
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 2px;
+  }
+  
+  .value-excellent {
+    background: rgba(var(--md-sys-color-primary), 0.2);
+    color: rgba(var(--md-sys-color-primary), 1);
+  }
+  
+  .value-good {
+    background: rgba(255, 193, 7, 0.2);
+    color: hsl(83,100,48,1);   
+  }
+  
+  .value-needs-improvement {
+    background: rgba(var(--md-sys-color-error), 0.2);
+    color: rgb(var(--md-sys-color-error));
+  }
+  /* --- Schwarzer Header im Stil von campus.calliope.cc --- */
+#main-header {
+  background: #1b1c1d;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  padding: 8px 24px;
+  box-sizing: border-box;
+}
+
+
+.header-inner {
+  width: 100%;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#calliope-logo {
+  height: 26px;
+  width: auto;
+}
+
+.header-title {
+  font-size: 18px;
+  color: white;
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Grundstil für alle Header-Buttons */
+.header-btn {
+  padding: 8px 18px;
+  border-radius: 20px;
+
+  background-color: transparent;          /* nicht aktiv: kein Hintergrund */
+  border: 1px solid transparent;          /* kein Rahmen */
+  color: white;                           /* weißer Text */
+  
+  font-size: 14px;
+  font-weight: 500;
+  
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Hover für NICHT AKTIVE Buttons → bleibt identisch */
+.header-btn:not(.active):hover {
+  background-color: rgba(255,255,255,0.15);
+}
+
+/* AKTIVER Button */
+.header-btn.active {
+  background-color: hsl(83,100,48,1);     /* grün wie gewünscht */
+  border-color: hsl(83,100,48,1);
+
+  color: black;                           /* schwarzer Text */
+  font-weight: 600;
+}
+
+/* Hover für AKTIVEN Button → etwas heller */
+.header-btn.active:hover {
+  background-color: hsl(83,100,58,1);     /* 10% mehr Lightness */
+  color: black;                           /* bleibt schwarz */
+}
+
+
+/* Abstand zwischen Header und Inhalt */
+
+body {
+  margin-top: 50px;
+}
+
+/* --- Pixelperfekte Zentrierung für ALLE Buttons (und file-labels) --- */
+button,
+label.file-label,
+.c-btn,
+.primary-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+
+#makecode-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 16px;
+  margin: 0;               /* Weiß oben entfernen */
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+
+</style>
+<script src="https://makecode.com/--embed.js"></script>
+</head>
+<body>
+  <header id="main-header">
+  <div class="header-inner">
+    <div class="header-left">
+      <!-- Original SVG von campus.calliope.cc -->
+     <svg width="35px" height="35px" viewBox="0 0 27 26" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" class="logo-icon"><g transform="matrix(1,0,0,1,-168.819,-43.654)"><g transform="matrix(1,0,0,1,0,1)"><g transform="matrix(1,0,0,1,0,-1001.5)"><path d="M188.739,1046.34L193.961,1046.34L193.961,1052.77L188.739,1052.77L188.739,1046.34ZM182.705,1056.02L183.882,1052.23L185.841,1056.02L182.705,1056.02ZM179.473,1056.02L181.44,1052.26L182.609,1056.02L179.473,1056.02ZM180.501,1047.53L184.839,1047.53L184.839,1050.46C184.839,1051.41 184.072,1052.18 183.125,1052.18L182.215,1052.18C181.268,1052.18 180.501,1051.41 180.501,1050.46L180.501,1047.53ZM193.658,1044.68L189.041,1044.68C188.347,1044.68 187.784,1045.25 187.784,1045.94C187.784,1045.94 187.776,1049.88 187.776,1049.42C187.776,1046.52 185.42,1044.16 182.513,1044.16C179.606,1044.16 177.249,1046.52 177.249,1049.42L177.249,1055.21L171.006,1059.88C166.797,1063.1 169.069,1069.82 174.364,1069.82L175.618,1069.82C176.145,1065.94 177.356,1061.15 179.813,1058.25L185.528,1058.25C188.016,1061.19 189.074,1065.92 189.59,1069.82L191.358,1069.82C193.322,1069.82 194.915,1068.22 194.915,1066.26L194.915,1045.94C194.915,1045.25 194.353,1044.68 193.658,1044.68" style="fill:#ffffff;fill-rule:nonzero;"></path></g></g></g></svg>
+<g transform="matrix(1,0,0,1,-168.819,-43.654)"><g transform="matrix(1,0,0,1,0,1)"><g transform="matrix(1,0,0,1,0,-1001.5)"><path d="M188.739,1046.34L193.961,1046.34L193.961,1052.77L188.739,1052.77L188.739,1046.34ZM182.705,1056.02L183.882,1052.23L185.841,1056.02L182.705,1056.02ZM179.473,1056.02L181.44,1052.26L182.609,1056.02L179.473,1056.02ZM180.501,1047.53L184.839,1047.53L184.839,1050.46C184.839,1051.41 184.072,1052.18 183.125,1052.18L182.215,1052.18C181.268,1052.18 180.501,1051.41 180.501,1050.46L180.501,1047.53ZM193.658,1044.68L189.041,1044.68C188.347,1044.68 187.784,1045.25 187.784,1045.94C187.784,1045.94 187.776,1049.88 187.776,1049.42C187.776,1046.52 185.42,1044.16 182.513,1044.16C179.606,1044.16 177.249,1046.52 177.249,1049.42L177.249,1055.21L171.006,1059.88C166.797,1063.1 169.069,1069.82 174.364,1069.82L175.618,1069.82C176.145,1065.94 177.356,1061.15 179.813,1058.25L185.528,1058.25C188.016,1061.19 189.074,1065.92 189.59,1069.82L191.358,1069.82C193.322,1069.82 194.915,1068.22 194.915,1066.26L194.915,1045.94C194.915,1045.25 194.353,1044.68 193.658,1044.68" style="fill:#ffffff;fill-rule:nonzero;"></path></g></g></g>
+
+      <span class="header-title">Calliope Teachable Machine</span>
+    </div>
+
+    <div class="header-right">
+      <!-- Navigation Buttons -->
+      <button class="header-btn" data-view="training">Training/Test</button>
+      <button class="header-btn" data-view="tryout">Ausprobieren</button>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <!-- TRAINING/TEST VIEW -->
+  <div id="training-view" class="view">
+    <!-- LEFT -->
+    <div class="left-panel panel">
+      <h1>Bildprojekt</h1>
+      <div>
+        <label>Neue Klasse:</label>
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <input id="new-class-name" type="text" placeholder="z. B. Hand" />
+          <button id="create-class">+</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Klassen:</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:12px;color:#666;">Klick zum Auswählen</span>
+          <button id="download-all" class="ghost" style="font-size:12px;padding:4px 8px;">Alle herunterladen</button>
+        </div>
+        <div id="class-list" class="class-list" style="margin-top:4px;"></div>
+      </div>
+
+      <hr style="margin:12px 0;">
+
+      <div>
+        <label>Aktive Klasse:</label>
+        <select id="active-class" style="margin-top:4px;"></select>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <button id="capture" class="primary-action">Aufnahme starten</button>
+          <label class="file-label" for="file-input">
+            Dateien
+            <input id="file-input" type="file" accept="image/*,.zip" style="display:none" multiple>
+          </label>
+          <button id="clear-class" class="ghost">Leeren</button>
+        </div>
+        <div id="capture-hint" class="button-hint">Halte die Taste gedrückt, um Bilder aufzunehmen (6 Bilder/Sekunde)</div>
+        <div id="capture-count" style="margin-top:6px;font-size:13px;color:#555;">0 Bilder</div>
+        <div id="thumbs" class="thumbs"></div>
+      </div>
+
+      <hr style="margin:12px 0;">
+
+      <div>
+        <label>Training:</label>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <input id="epochs" type="number" value="20" min="1" style="width:80px;">
+          <button id="train">Modell Trainieren</button>
+          <button id="model-details" class="ghost" disabled>Modell Details</button>
+        </div>
+        <div class="status light" id="train-status" style="margin-top:6px;color:#007acc;">Bereit</div>
+      </div>
+
+      <hr style="margin:12px 0;">
+
+      <div>
+        <label>Modell:</label>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button id="save-model" class="ghost">Speichern</button>
+          <label class="file-label" for="load-model">
+            Laden
+            <input id="load-model" type="file" accept=".zip" style="display:none">
+          </label>
+        </div>
+        <div id="model-info" class="model-info"></div>
+      </div>
+      
+      <!-- Project Buttons -->
+      <div class="project-buttons">
+        <button id="download-project">Projekt herunterladen</button>
+        <label class="file-label" for="import-project">
+          Projekt importieren
+          <input id="import-project" type="file" accept=".zip" style="display:none">
+        </label>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <div class="tabs">
+        <div class="tab active" data-tab="train">Training</div>
+        <div class="tab" data-tab="test">Test</div>
+      </div>
+      
+      <div id="train-tab" class="tab-content active">
+        <div class="video-wrap">
+          <video id="webcam" autoplay playsinline></video>
+          <div class="overlay">
+            <div id="status" class="status dark">Lädt Modell…</div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="test-tab" class="tab-content">
+        <div class="video-wrap">
+          <video id="webcam-test" autoplay playsinline></video>
+          <div class="overlay">
+            <div id="test-status" class="status dark">Bereit zum Testen</div>
+            <button id="test-capture" class="ghost">Testen</button>
+            <div id="test-hint" class="button-hint" style="color:#fff;">Klicke zum Starten/Stoppen der Echtzeit-Vorhersage</div>
+          </div>
+          <div id="prediction-display" class="prediction-display"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRY OUT VIEW -->
+  <!-- TRY OUT VIEW -->
+<div id="tryout-view" class="view" style="display:none;">
+
+  <!-- LINKER BEREICH -->
+  <div class="left-panel panel">
+
+    <div class="try-out-container">
+      <div class="try-out-header">
+        <h1>Modell laden</h1>
+        <div class="try-out-status">
+          <div id="bt-status-indicator" class="status-indicator"></div>
+          <span id="bt-status-text">Nicht verbunden</span>
+        </div>
+      </div>
+
+      <div>
+        <label>Trainiertes Modell:</label>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <label class="file-label" for="tryout-load-model">
+            Modell hochladen
+            <input id="tryout-load-model" type="file" accept=".zip" style="display:none">
+          </label>
+        </div>
+        <div id="tryout-model-info" class="model-info"></div>
+      </div>
+
+      <hr style="margin:12px 0;">
+
+      <div class="video-wrap">
+        <video id="webcam-tryout" autoplay playsinline></video>
+        <div class="overlay">
+          <div id="tryout-status" class="status dark">Bereit zum Ausprobieren</div>
+          <button id="tryout-capture" class="ghost">Starten</button>
+          <div id="tryout-hint" class="button-hint" style="color:#fff;">Klicke zum Starten/Stoppen der Echtzeit-Vorhersage</div>
+        </div>
+        <div id="tryout-prediction" class="prediction-display"></div>
+      </div>
+
+      <h1>Calliope mini Verbindung</h1>
+      <div class="bluetooth-controls">
+        <button id="scan-bluetooth">Verbinden</button>
+        <button id="disconnect-bluetooth" style="display:none;">Trennen</button>
+        <div id="bluetooth-devices" style="margin-top:10px;"></div>
+        <div id="bluetooth-status" class="bluetooth-status">Bereit zur Verbindung</div>
+      </div>
+
+    </div> <!-- try-out-container -->
+
+  </div> <!-- left-panel -->
+
+  <!-- RECHTER BEREICH: EDITOR -->
+  <div class="right-panel" id="makecode-editor-container" style="display:none;">
+    <iframe id="makecode-iframe"
+      src="https://makecode.calliope.cc/#editor"
+      style="width:100%;height:100%;border:none;border-radius:16px;margin:0;">
+    </iframe>
+  </div>
+
+</div> <!-- tryout-view -->
+
+
+
+<!-- Import Dialog (hidden by default) -->
+<div id="dialog-overlay" class="dialog-overlay" style="display:none;"></div>
+<div id="import-dialog" class="import-dialog" style="display:none;">
+  <h3>Bilder importieren</h3>
+  <p id="import-message">Wähle eine Klasse für die importierten Bilder:</p>
+  <div id="import-class-options"></div>
+  <div class="buttons">
+    <button id="import-cancel" class="ghost">Abbrechen</button>
+    <button id="import-confirm">Importieren</button>
+  </div>
+</div>
+
+<!-- Model Details Dialog (hidden by default) -->
+<div id="model-details-dialog" class="model-details-dialog" style="display:none;">
+  <button class="close-btn" id="close-details">&times;</button>
+  <h2>Modell-Details</h2>
+  
+  <div class="model-details-tabs">
+    <div class="model-details-tab active" data-tab="overview">Übersicht</div>
+    <div class="model-details-tab" data-tab="accuracy">Genauigkeit</div>
+    <div class="model-details-tab" data-tab="confusion">Konfusionsmatrix</div>
+  </div>
+  
+  <div id="overview-tab" class="model-details-content active">
+    <div class="section-description">
+      <strong>Modellübersicht</strong><br>
+      Diese Übersicht zeigt wichtige Metriken des trainierten Modells. Die Statistiken geben einen schnellen Einblick in die Leistungsfähigkeit des Modells, während der Graph die Entwicklung von Genauigkeit und Verlust über die Trainingsepochen hinweg visualisiert.<br><br>
+      
+      <strong>Genauigkeitswerte:</strong><br>
+      <span class="value-guideline value-excellent">>90%</span> Exzellent - Modell sehr zuverlässig<br>
+      <span class="value-guideline value-good">70-90%</span> Gut - Modell für die meisten Anwendungsfälle geeignet<br>
+      <span class="value-guideline value-needs-improvement"><70%</span> Verbesserungsbedürftig - Mehr Trainingsdaten oder Epochen benötigt<br><br>
+      
+      <strong>Verlustwerte:</strong><br>
+      <span class="value-guideline value-excellent"><0.1</span> Sehr gut - Modell lernt effektiv<br>
+      <span class="value-guideline value-good">0.1-0.5</span> Gut - Akzeptables Lernverhalten<br>
+      <span class="value-guideline value-needs-improvement">>0.5</span> Hoch - Modell überangepasst oder untertrainiert<br><br>
+      
+      <strong>Trainingsepochen:</strong><br>
+      Typischerweise 10-50 Epochen für kleine Datensätze. Wenn die Genauigkeit nach 20 Epochen nicht mehr steigt, ist das Modell wahrscheinlich ausreichend trainiert.
+    </div>
+    
+    <div class="model-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="overall-accuracy">-</div>
+        <div class="stat-label">Gesamtgenauigkeit</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="total-loss">-</div>
+        <div class="stat-label">Gesamtverlust</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="total-epochs">-</div>
+        <div class="stat-label">Trainingsepochen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="total-examples">-</div>
+        <div class="stat-label">Trainingsbeispiele</div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="accuracy-loss-chart"></canvas>
+    </div>
+  </div>
+  
+  <div id="accuracy-tab" class="model-details-content">
+    <div class="section-description">
+      <strong>Genauigkeit pro Klasse</strong><br>
+      Dieser Balkendiagramm zeigt die Genauigkeit des Modells für jede einzelne Klasse. Er hilft Ihnen zu erkennen, bei welchen Klassen das Modell gut funktioniert und bei welchen es Schwierigkeiten hat.<br><br>
+      
+      <strong>Interpretation der Werte:</strong><br>
+      <span class="value-guideline value-excellent">>90%</span> Exzellent - Klasse wird sehr zuverlässig erkannt<br>
+      <span class="value-guideline value-good">70-90%</span> Gut - Klasse wird meistens korrekt erkannt<br>
+      <span class="value-guideline value-needs-improvement"><70%</span> Problematisch - Klasse benötigt mehr oder bessere Trainingsbeispiele<br><br>
+      
+      <strong>Mögliche Ursachen für niedrige Genauigkeit:</strong><br>
+      • Zu wenige Trainingsbilder für diese Klasse<br>
+      • Bilder sind zu ähnlich zu anderen Klassen<br>
+      • Schlechte Lichtverhältnisse oder unscharfe Bilder<br>
+      • Klasse hat zu viele Variationen (z.B. "verschiedene Objekte")<br><br>
+      
+      <strong>Verbesserungstipps:</strong><br>
+      • Füge mindestens 20-30 Bilder pro Klasse hinzu<br>
+      • Stelle sicher, dass die Bilder konsistent sind<br>
+      • Vermeide ähnliche Objekte in verschiedenen Klassen
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="accuracy-chart"></canvas>
+    </div>
+  </div>
+  
+  <div id="confusion-tab" class="model-details-content">
+    <div class="section-description">
+      <strong>Konfusionsmatrix</strong><br>
+      Die Konfusionsmatrix visualisiert die Leistung des Modells, indem sie zeigt, welche Klassen miteinander verwechselt werden. Die Zeilen repräsentieren die tatsächlichen Klassen, während die Spalten die vom Modell vorhergesagten Klassen darstellen. Die Diagonale (von links oben nach rechts unten) zeigt die korrekt klassifizierten Beispiele. Werte außerhalb der Diagonale sind Fehlklassifizierungen. Eine perfekte Klassifikation hätte nur Werte auf der Diagonale.<br><br>
+      
+      <strong>Wie man die Matrix liest:</strong><br>
+      • Diagonale Werte: Korrekt klassifizierte Beispiele<br>
+      • Werte außerhalb der Diagonale: Fehlklassifizierungen<br>
+      • Hohe Werte außerhalb der Diagonale: Systematische Verwechslung zwischen Klassen<br>
+      • Niedrige Werte auf der Diagonale: Klasse wird oft falsch erkannt<br><br>
+      
+      <strong>Gute Anzeichen:</strong><br>
+      • Die meisten Werte liegen auf der Diagonale<br>
+      • Keine offensichtlichen Muster in den Fehlklassifizierungen<br>
+      • Alle Klassen haben ähnliche Erkennungsraten
+    </div>
+    
+    <div class="confusion-matrix">
+      <h3>Konfusionsmatrix</h3>
+      <div id="confusion-matrix-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Model Load Notification -->
+<div id="model-load-notification" class="model-load-notification"></div>
+
+<script>
+
+let mobilenetModel;
+let classifierModel = null;
+const examples = {};
+let classes = [];
+let activeClass = null;
+let captureInterval = null;
+let testInterval = null;
+let tryoutInterval = null;
+let model = null;
+const captureRate = 80; // 6 Bilder pro Sekunde (1000ms / 6 ≈ 167ms)
+const testRate = 100; // Test alle 100ms für flüssige Anzeige
+let modelMetadata = {
+  name: "Teachable Machine Model",
+  date: new Date().toISOString(),
+  version: "1.0",
+  classes: []
+};
+let isTestActive = false;
+let isTryoutActive = false;
+let pendingZipImages = [];
+let pendingZipClass = null;
+
+// Training history for graphs
+let trainingHistory = {
+  epochs: [],
+  accuracy: [],
+  loss: []
+};
+function sendClassesToMakeCode() {
+    if (!mcApp) return;
+
+    const code = `let klassen = [${classes.map(c => `"${c}"`).join(", ")}]`;
+
+    mcApp.writeCodeAsync(code)
+        .catch(err => console.error("MakeCode writeCodeAsync:", err));
+}
+
+// Bluetooth variables - updated to match working implementation
+const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const UART_TX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const UART_RX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+let uBitDevice;
+let rxCharacteristic;
+let queue = Promise.resolve();
+
+// Variables for throttling Bluetooth transmission
+// State management for class change detection
+let lastDetectedClass = null;
+let isFirstPrediction = true;
+
+// Chart instances
+let accuracyLossChart = null;
+let accuracyChart = null;
+
+// View management
+function switchView(viewName) {
+    // Alle Videos stoppen, wenn View gewechselt wird
+    ["webcam", "webcam-test", "webcam-tryout"].forEach(id => {
+        const v = document.getElementById(id);
+        if (v) {
+            v.pause();
+            v.srcObject = null;
+        }
+    });
+
+    // Alle Views verstecken
+    document.querySelectorAll('.view').forEach(v => {
+        v.style.display = 'none';
+    });
+
+    // Aktiven View anzeigen
+    document.getElementById(viewName + '-view').style.display = 'flex';
+
+    // Header-Navigation aktualisieren
+    document.querySelectorAll('.header-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-view') === viewName) {
+            btn.classList.add('active');
+        }
+    });
+
+    // MakeCode-Editor nur im Tryout-View anzeigen
+    let makecodeEditor = document.getElementById('makecode-editor-container');
+    if (makecodeEditor) {
+        makecodeEditor.style.display = (viewName === 'tryout') ? 'block' : 'none';
+    }
+
+    // Nur im aktiven View den Stream setzen
+    if (viewName === "training") {
+        document.getElementById("webcam").srcObject = globalStream;
+        document.getElementById("webcam-test").srcObject = globalStream;
+    }
+
+    if (viewName === "tryout") {
+        document.getElementById("webcam-tryout").srcObject = globalStream;
+    }
+}
+// Navigation click events
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('.header-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+          const view = btn.getAttribute('data-view');
+          switchView(view);
+      });
+  });
+});
+
+
+/* Gemeinsame Webcam für alle Video-Elemente */
+let globalStream = null;
+
+async function initSharedCamera() {
+  try {
+    // Falls noch kein Stream existiert → jetzt Kamera anfordern
+    if (!globalStream) {
+      globalStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    }
+
+    // Liste aller Video-Elemente, die den Stream nutzen sollen
+    const videoIds = ["webcam", "webcam-test", "webcam-tryout"];
+
+    for (const id of videoIds) {
+      const v = document.getElementById(id);
+      if (!v) continue;
+
+      // Den globalen Stream zuweisen
+      if (v.srcObject !== globalStream) {
+        v.srcObject = globalStream;
+      }
+
+      // Sicherstellen, dass das Video abgespielt wird
+      v.onloadedmetadata = () => {
+        v.play().catch(err => console.warn("Video play blocked:", err));
+      };
+    }
+  } catch (err) {
+    console.error("Kamera-Initialisierung fehlgeschlagen:", err);
+    alert("Zugriff auf die Kamera ist nicht möglich.");
+  }
+}
+
+
+async function init() {
+  await initSharedCamera();              // einmal Kamerafreigabe
+  mobilenetModel = await mobilenet.load();   // MobileNet wie gehabt
+
+  // UI-Statusmeldungen
+  document.getElementById('status').textContent = 'Bereit';
+  document.getElementById('test-status').textContent = 'Bereit zum Testen';
+  document.getElementById('tryout-status').textContent = 'Bereit zum Ausprobieren';
+}
+
+/* Show notification */
+function showNotification(message, duration = 3000) {
+  const notification = document.getElementById('model-load-notification');
+  notification.textContent = message;
+  notification.style.display = 'block';
+  
+  setTimeout(() => {
+    notification.style.display = 'none';
+  }, duration);
+}
+
+/* Klassenverwaltung */
+function addClass(name) {
+  if (!name || classes.includes(name)) return;
+  classes.push(name);
+  examples[name] = [];
+  modelMetadata.classes.push(name);
+  renderClassList();
+  setActiveClass(name);
+}
+function sendClassesToMakeCode() {
+  if (!window.mcApp) return; // Editor noch nicht bereit
+
+  const code = `let klassen = [${classes.map(c => `"${c}"`).join(", ")}]`;
+
+  mcApp.writeCodeAsync(code)
+    .catch(err => console.error("MakeCode writeCodeAsync error:", err));
+}
+
+function renderClassList() {
+  const list = document.getElementById('class-list');
+  list.innerHTML = '';
+  for (const c of classes) {
+    const div = document.createElement('div');
+    div.className = 'class-item';
+    if (c === activeClass) {
+      div.classList.add('selected');
+    }
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'class-name';
+    nameSpan.textContent = c + ' (' + (examples[c].length || 0) + ')';
+    
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'class-actions';
+    
+    const downloadBtn = document.createElement('button');
+    downloadBtn.className = 'ghost';
+    downloadBtn.textContent = '↓';
+    downloadBtn.title = 'Bilder herunterladen';
+    downloadBtn.onclick = (e) => {
+      e.stopPropagation();
+      downloadClassImages(c);
+    };
+    
+    actionsDiv.appendChild(downloadBtn);
+    div.appendChild(nameSpan);
+    div.appendChild(actionsDiv);
+    
+    div.onclick = () => setActiveClass(c);
+    list.appendChild(div);
+  }
+  
+  const sel = document.getElementById('active-class');
+  sel.innerHTML = '';
+  for (const c of classes) {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  }
+  // Dropdown immer auf die aktuell aktive Klasse setzen
+  if (activeClass && classes.includes(activeClass)) {
+    sel.value = activeClass;
+  }
+}
+
+function setActiveClass(name) {
+  activeClass = name;
+  document.getElementById('active-class').value = name;
+  renderClassList();
+  renderThumbs();
+}
+
+function renderThumbs() {
+  const t = document.getElementById('thumbs');
+  t.innerHTML = '';
+  const arr = examples[activeClass] ? [...examples[activeClass]].reverse() : [];
+  for (const e of arr) {
+    const img = new Image();
+    img.src = e.data;
+    img.className = 'thumb';
+    t.appendChild(img);
+  }
+  document.getElementById('capture-count').textContent = arr.length + ' Bilder';
+}
+
+
+/* Model Details Dialog */
+function showModelDetails() {
+  if (!classifierModel) {
+    alert('Bitte zuerst ein Modell trainieren');
+    return;
+  }
+  
+  document.getElementById('model-details-dialog').style.display = 'block';
+  document.getElementById('dialog-overlay').style.display = 'block';
+  
+  // Update overview stats
+  updateModelStats();
+  
+  // Initialize charts if not already done
+  if (!accuracyLossChart) {
+    initAccuracyLossChart();
+  }
+  if (!accuracyChart) {
+    initAccuracyChart();
+  }
+  
+  // Update charts with training history
+  updateCharts();
+  
+  // Calculate and display confusion matrix
+  calculateConfusionMatrix();
+}
+
+function hideModelDetails() {
+  document.getElementById('model-details-dialog').style.display = 'none';
+  document.getElementById('dialog-overlay').style.display = 'none';
+}
+
+function updateModelStats() {
+  // Calculate total examples
+  let totalExamples = 0;
+  for (const className of classes) {
+    totalExamples += examples[className].length;
+  }
+  
+  // Update stats
+  document.getElementById('total-epochs').textContent = trainingHistory.epochs.length;
+  document.getElementById('total-examples').textContent = totalExamples;
+  
+  if (trainingHistory.accuracy.length > 0) {
+    const lastAccuracy = trainingHistory.accuracy[trainingHistory.accuracy.length - 1];
+    const lastLoss = trainingHistory.loss[trainingHistory.loss.length - 1];
+    
+    document.getElementById('overall-accuracy').textContent = (lastAccuracy * 100).toFixed(1) + '%';
+    document.getElementById('total-loss').textContent = lastLoss.toFixed(4);
+  }
+}
+
+function initAccuracyLossChart() {
+  const ctx = document.getElementById('accuracy-loss-chart').getContext('2d');
+  accuracyLossChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Genauigkeit',
+          data: [],
+          borderColor: '#4CAF50',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Verlust',
+          data: [],
+          borderColor: '#F44336',
+          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+          fill: true,
+          tension: 0.4,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Genauigkeit und Verlust pro Epoche'
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 1,
+          title: {
+            display: true,
+            text: 'Genauigkeit'
+          }
+        },
+        y1: {
+          beginAtZero: true,
+          position: 'right',
+          grid: {
+            drawOnChartArea: false
+          },
+          title: {
+            display: true,
+            text: 'Verlust'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Epoche'
+          }
+        }
+      }
+    }
+  });
+}
+
+function initAccuracyChart() {
+  const ctx = document.getElementById('accuracy-chart').getContext('2d');
+  accuracyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: classes,
+      datasets: [{
+        label: 'Klassengenauigkeit',
+        data: new Array(classes.length).fill(0),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.5)',
+          'rgba(54, 162, 235, 0.5)',
+          'rgba(255, 206, 86, 0.5)',
+          'rgba(75, 192, 192, 0.5)',
+          'rgba(153, 102, 255, 0.5)',
+          'rgba(255, 159, 64, 0.5)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Genauigkeit pro Klasse'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 1,
+          title: {
+            display: true,
+            text: 'Genauigkeit'
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateCharts() {
+  // Update accuracy/loss chart
+  if (accuracyLossChart) {
+    accuracyLossChart.data.labels = trainingHistory.epochs;
+    accuracyLossChart.data.datasets[0].data = trainingHistory.accuracy;
+    accuracyLossChart.data.datasets[1].data = trainingHistory.loss;
+    accuracyLossChart.update();
+  }
+  
+  // Update accuracy per class chart
+  if (accuracyChart && classes.length > 0) {
+    accuracyChart.data.labels = classes;
+    accuracyChart.data.datasets[0].data = new Array(classes.length).fill(0);
+    accuracyChart.update();
+  }
+}
+
+async function calculateConfusionMatrix() {
+  if (!classifierModel || classes.length === 0) return;
+  
+  // Create confusion matrix
+  const matrixSize = classes.length;
+  const confusionMatrix = Array(matrixSize).fill().map(() => Array(matrixSize).fill(0));
+  const classAccuracy = new Array(classes.length).fill(0);
+  const classCounts = new Array(classes.length).fill(0);
+  
+  // Test each example
+  for (let classIndex = 0; classIndex < classes.length; classIndex++) {
+    const className = classes[classIndex];
+    const classExamples = examples[className];
+    
+    for (const example of classExamples) {
+      // Create image tensor from example
+      const img = new Image();
+      img.src = example.data;
+      await new Promise(r => img.onload = r);
+      
+      const input = tf.browser.fromPixels(img)
+        .toFloat()
+        .div(127.5)
+        .sub(1)
+        .resizeBilinear([224, 224])
+        .expandDims(0);
+
+      const prediction = await tf.tidy(() => {
+        const emb = mobilenetModel.infer(input, true);
+        const logits = classifierModel.predict(emb);
+        return logits.data();
+      });
+
+      // Find predicted class
+      let maxProb = 0;
+      let predictedIndex = 0;
+      for (let i = 0; i < classes.length; i++) {
+        if (prediction[i] > maxProb) {
+          maxProb = prediction[i];
+          predictedIndex = i;
+        }
+      }
+
+      
+      // Update confusion matrix
+      confusionMatrix[classIndex][predictedIndex]++;
+      classCounts[classIndex]++;
+      
+      // Update class accuracy
+      if (predictedIndex === classIndex) {
+        classAccuracy[classIndex]++;
+      }
+      
+      // Clean up tensors
+      input.dispose();
+    }
+  }
+  
+  // Calculate final accuracy percentages
+  for (let i = 0; i < classes.length; i++) {
+    if (classCounts[i] > 0) {
+      classAccuracy[i] = classAccuracy[i] / classCounts[i];
+    }
+  }
+  
+  // Update accuracy chart
+  if (accuracyChart) {
+    accuracyChart.data.datasets[0].data = classAccuracy;
+    accuracyChart.update();
+  }
+  
+  // Render confusion matrix
+  renderConfusionMatrix(confusionMatrix);
+}
+
+function renderConfusionMatrix(matrix) {
+  const container = document.getElementById('confusion-matrix-container');
+  container.innerHTML = '';
+  
+  const table = document.createElement('table');
+
+  const headerRow = document.createElement('tr');
+  headerRow.appendChild(document.createElement('th')); // Leere Fläche
+
+  for (let i = 0; i < classes.length; i++) {
+    const th = document.createElement('th');
+    th.textContent = `Vorhergesagt: ${classes[i]}`;
+    headerRow.appendChild(th);        // Korrekt
+  }
+  table.appendChild(headerRow);
+
+  for (let i = 0; i < classes.length; i++) {
+    const row = document.createElement('tr');
+    const rowHeader = document.createElement('th');
+    rowHeader.textContent = `Tatsächlich: ${classes[i]}`;
+    row.appendChild(rowHeader);
+
+    for (let j = 0; j < classes.length; j++) {
+      const cell = document.createElement('td');
+      cell.textContent = matrix[i][j];
+      if (i === j) cell.classList.add('correct');
+      else if (matrix[i][j] > 0) cell.classList.add('incorrect');
+      row.appendChild(cell);
+    }
+    table.appendChild(row);
+  }
+
+  container.appendChild(table);
+}
+
+
+// Import-Dialogfunktionen
+function showImportDialog(zipImages, detectedClass = null) {
+  pendingZipImages = zipImages;
+  pendingZipClass = detectedClass;
+  
+  const dialog = document.getElementById('import-dialog');
+  const overlay = document.getElementById('dialog-overlay');
+  const optionsContainer = document.getElementById('import-class-options');
+  const message = document.getElementById('import-message');
+  
+  // Clear previous options
+  optionsContainer.innerHTML = '';
+  
+  // Set message based on whether we detected a class
+  if (detectedClass) {
+    message.textContent = `${zipImages.length} Bilder aus Klasse "${detectedClass}" gefunden. Wähle eine Klasse für den Import:`;
+  } else {
+    message.textContent = `${zipImages.length} Bilder gefunden. Wähle eine Klasse für den Import:`;
+  }
+  
+  // Add option for each existing class
+  classes.forEach(className => {
+    const option = document.createElement('div');
+    option.className = 'class-option';
+    if (className === activeClass) {
+      option.classList.add('selected');
+    }
+    option.textContent = className + ' (hat bereits ' + examples[className].length + ' Bilder)';
+    option.onclick = () => {
+      document.querySelectorAll('.class-option').forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+      pendingZipClass = className;
+    };
+    optionsContainer.appendChild(option);
+  });
+  
+  // Add option to create new class
+  const newOption = document.createElement('div');
+  newOption.className = 'class-option';
+  newOption.textContent = 'Neue Klasse erstellen...';
+  newOption.onclick = () => {
+    const newName = prompt('Name für neue Klasse:', detectedClass || 'Importierte Klasse');
+    if (newName && !classes.includes(newName)) {
+      addClass(newName);
+      document.querySelectorAll('.class-option').forEach(opt => opt.classList.remove('selected'));
+      newOption.textContent = newName + ' (neu)';
+      newOption.classList.add('selected');
+      pendingZipClass = newName;
+    }
+  };
+  optionsContainer.appendChild(newOption);
+  
+  // Show dialog
+  dialog.style.display = 'block';
+  overlay.style.display = 'block';
+  
+  // Set initial selection
+  if (detectedClass && classes.includes(detectedClass)) {
+    pendingZipClass = detectedClass;
+  } else if (activeClass) {
+    pendingZipClass = activeClass;
+  }
+}
+
+function hideImportDialog() {
+  document.getElementById('import-dialog').style.display = 'none';
+  document.getElementById('dialog-overlay').style.display = 'none';
+  pendingZipImages = [];
+  pendingZipClass = null;
+}
+
+function confirmImport() {
+  if (!pendingZipClass || !pendingZipImages.length) {
+    hideImportDialog();
+    return;
+  }
+  
+  // Add images to selected class
+  pendingZipImages.forEach(imageData => {
+    examples[pendingZipClass].push({ data: imageData });
+  });
+  
+  // Update UI
+  setActiveClass(pendingZipClass);
+  renderClassList();
+  renderThumbs();
+  
+  console.log(`Imported ${pendingZipImages.length} images to class "${pendingZipClass}"`);
+  hideImportDialog();
+}
+
+/* Process zip file for image import */
+async function processZipFile(file) {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(arrayBuffer);
+    
+    const imageFiles = [];
+    let detectedClass = null;
+    
+    // Check if this is a single class zip or multi-class zip
+    const folders = Object.keys(zipContent.files).filter(path => {
+      const file = zipContent.files[path];
+      return file.dir && path !== '/' && path !== '__MACOSX/';
+    });
+    
+    if (folders.length > 0) {
+      // Multi-class zip - let user choose which class to import
+      // For now, we'll import from the first folder that has images
+      for (const folder of folders) {
+        const folderName = folder.replace(/\/$/, '');
+        const filesInFolder = Object.keys(zipContent.files).filter(path => 
+          path.startsWith(folder) && 
+          !zipContent.files[path].dir && 
+          (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg'))
+        );
+        
+        if (filesInFolder.length > 0) {
+          detectedClass = folderName;
+          // Extract images from this folder
+          for (const filePath of filesInFolder) {
+            const imageFile = zipContent.files[filePath];
+            const base64 = await imageFile.async('base64');
+            const mimeType = filePath.endsWith('.png') ? 'image/png' : 'image/jpeg';
+            imageFiles.push(`data:${mimeType};base64,${base64}`);
+          }
+          break; // Only process first folder with images for now
+        }
+      }
+    } else {
+      // Single class zip - extract all images
+      const files = Object.keys(zipContent.files).filter(path => 
+        !zipContent.files[path].dir && 
+        (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg'))
+      );
+      
+      for (const filePath of files) {
+        const imageFile = zipContent.files[filePath];
+        const base64 = await imageFile.async('base64');
+        const mimeType = filePath.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        imageFiles.push(`data:${mimeType};base64,${base64}`);
+      }
+      
+      // Try to detect class name from metadata
+      if (zipContent.file('metadata.json')) {
+        const metadata = await zipContent.file('metadata.json').async('string');
+        const metadataObj = JSON.parse(metadata);
+        detectedClass = metadataObj.className || null;
+      }
+    }
+    
+    if (imageFiles.length > 0) {
+      showImportDialog(imageFiles, detectedClass);
+    } else {
+      alert('Keine Bilddateien im Zip-Archiv gefunden');
+    }
+  } catch (error) {
+    console.error('Fehler beim Verarbeiten der Zip-Datei:', error);
+    alert('Fehler beim Verarbeiten der Zip-Datei: ' + error.message);
+  }
+}
+
+/* Download class images */
+async function downloadClassImages(className) {
+  const classExamples = examples[className] || [];
+  if (classExamples.length === 0) {
+    alert('Keine Bilder zum Herunterladen');
+    return;
+  }
+  
+  try {
+    const zip = new JSZip();
+    const imgFolder = zip.folder(className);
+    
+    // Add each image to the zip
+    for (let i = 0; i < classExamples.length; i++) {
+      const base64Data = classExamples[i].data;
+      // Extract the base64 part (remove data:image/png;base64, prefix)
+      const base64 = base64Data.split(',')[1];
+      imgFolder.file(`${className}_${i + 1}.png`, base64, {base64: true});
+    }
+    
+    // Create a metadata file with class information
+    const metadata = {
+      className: className,
+      imageCount: classExamples.length,
+      date: new Date().toISOString(),
+      version: "1.0"
+    };
+    imgFolder.file('metadata.json', JSON.stringify(metadata, null, 2));
+    
+    // Generate and download the zip file
+    const content = await zip.generateAsync({type: 'blob'});
+    saveAs(content, `${className}_images_${Date.now()}.zip`);
+    
+    console.log(`Downloaded ${classExamples.length} images for class "${className}"`);
+  } catch (error) {
+    console.error('Fehler beim Herunterladen der Bilder:', error);
+    alert('Fehler beim Herunterladen: ' + error.message);
+  }
+}
+
+/* Download all class images */
+async function downloadAllClassImages() {
+  if (classes.length === 0) {
+    alert('Keine Klassen zum Herunterladen');
+    return;
+  }
+  
+  try {
+    const zip = new JSZip();
+    let totalImages = 0;
+    
+    // Create a folder for each class
+    for (const className of classes) {
+      const classExamples = examples[className] || [];
+      if (classExamples.length === 0) continue;
+      
+      const imgFolder = zip.folder(className);
+      
+      // Add each image to the class folder
+      for (let i = 0; i < classExamples.length; i++) {
+        const base64Data = classExamples[i].data;
+        const base64 = base64Data.split(',')[1];
+        imgFolder.file(`${className}_${i + 1}.png`, base64, {base64: true});
+        totalImages++;
+      }
+      
+      // Create metadata for each class
+      const metadata = {
+        className: className,
+        imageCount: classExamples.length,
+        date: new Date().toISOString()
+      };
+      imgFolder.file('metadata.json', JSON.stringify(metadata, null, 2));
+    }
+    
+    // Create a main metadata file
+    const mainMetadata = {
+      projectName: "Teachable Machine Dataset",
+      totalClasses: classes.length,
+      totalImages: totalImages,
+      classes: classes.map(c => ({
+        name: c,
+        count: examples[c].length
+      })),
+      date: new Date().toISOString(),
+      version: "1.0"
+    };
+    zip.file('dataset_metadata.json', JSON.stringify(mainMetadata, null, 2));
+    
+    // Generate and download the zip file
+    const content = await zip.generateAsync({type: 'blob'});
+    saveAs(content, `teachable_machine_dataset_${Date.now()}.zip`);
+    
+    console.log(`Downloaded ${totalImages} images from ${classes.length} classes`);
+  } catch (error) {
+    console.error('Fehler beim Herunterladen aller Bilder:', error);
+    alert('Fehler beim Herunterladen: ' + error.message);
+  }
+}
+
+/* Download complete project */
+async function downloadProject() {
+  if (classes.length === 0) {
+    alert('Keine Klassen zum Herunterladen');
+    return;
+  }
+  
+  document.getElementById('model-info').textContent = 'Speichere Projekt...';
+  
+  try {
+    const zip = new JSZip();
+    let totalImages = 0;
+    
+    // Create folders for images
+    const imagesFolder = zip.folder('images');
+    
+    // Add all images with their class structure
+    for (const className of classes) {
+      const classExamples = examples[className] || [];
+      if (classExamples.length === 0) continue;
+      
+      const classFolder = imagesFolder.folder(className);
+      
+      // Add each image to the class folder
+      for (let i = 0; i < classExamples.length; i++) {
+        const base64Data = classExamples[i].data;
+        const base64 = base64Data.split(',')[1];
+        classFolder.file(`${className}_${i + 1}.png`, base64, {base64: true});
+        totalImages++;
+      }
+      
+      // Create metadata for each class
+      const metadata = {
+        className: className,
+        imageCount: classExamples.length,
+        date: new Date().toISOString()
+      };
+      classFolder.file('metadata.json', JSON.stringify(metadata, null, 2));
+    }
+    
+    // Save model if it exists
+    if (classifierModel) {
+      const modelFolder = zip.folder('model');
+      
+      // Use TensorFlow.js built-in save functionality to get model artifacts
+      await classifierModel.save(tf.io.withSaveHandler(async (artifacts) => {
+        // Save model topology
+        modelFolder.file('model.json', new Blob([JSON.stringify(artifacts.modelTopology)], {type: 'application/json'}));
+        
+        // Save weight specs
+        modelFolder.file('weights.json', new Blob([JSON.stringify(artifacts.weightSpecs)], {type: 'application/json'}));
+        
+        // Save weight data
+        modelFolder.file('weights.bin', new Blob([artifacts.weightData], {type: 'application/octet-stream'}));
+        
+        // Return a dummy model info since we're handling the actual saving
+        return {modelArtifactsInfo: {dateSaved: new Date()}};
+      }));
+    }
+    
+    // Create project metadata
+    const projectMetadata = {
+      projectName: "Teachable Machine Project",
+      version: "1.0",
+      date: new Date().toISOString(),
+      totalClasses: classes.length,
+      totalImages: totalImages,
+      hasModel: !!classifierModel,
+      classes: classes.map(c => ({
+        name: c,
+        count: examples[c].length
+      })),
+      modelMetadata: modelMetadata,
+      trainingHistory: trainingHistory
+    };
+    zip.file('project.json', JSON.stringify(projectMetadata, null, 2));
+    
+    // Generate and download the zip file
+    const content = await zip.generateAsync({type: 'blob'});
+    saveAs(content, `teachable_machine_project_${Date.now()}.zip`);
+    
+    document.getElementById('model-info').textContent = 'Projekt erfolgreich gespeichert';
+    console.log(`Downloaded project with ${totalImages} images from ${classes.length} classes`);
+  } catch (error) {
+    console.error('Fehler beim Herunterladen des Projekts:', error);
+    document.getElementById('model-info').textContent = 'Fehler beim Speichern: ' + error.message;
+  }
+}
+
+/* Import complete project */
+async function importProject(file) {
+  document.getElementById('model-info').textContent = 'Lade Projekt...';
+  
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(arrayBuffer);
+    
+    // Check if this is a valid project file
+    if (!zipContent.file('project.json')) {
+      throw new Error('Keine gültige Projekt-Datei');
+    }
+    
+    // Load project metadata
+    const projectFile = await zipContent.file('project.json').async('string');
+    const projectMetadata = JSON.parse(projectFile);
+    
+    // Clear current project
+    classes = [];
+    for (const className in examples) {
+      delete examples[className];
+    }
+    classifierModel = null;
+    
+    // Load training history if available
+    if (projectMetadata.trainingHistory) {
+      trainingHistory = projectMetadata.trainingHistory;
+    } else {
+      // Reset training history
+      trainingHistory = {
+        epochs: [],
+        accuracy: [],
+        loss: []
+      };
+    }
+    
+    // Load classes and images
+    if (zipContent.folder('images')) {
+      const imagesFolder = zipContent.folder('images');
+      const classFolders = Object.keys(imagesFolder.files).filter(path => {
+        const file = imagesFolder.files[path];
+        return file.dir && path !== 'images/' && path !== 'images/__MACOSX/' && !path.includes('model');
+      }).map(path => path.replace(/^images\//, '').replace(/\/$/, ''));
+      
+      for (const className of classFolders) {
+        classes.push(className);
+        examples[className] = [];
+        
+        const classPath = 'images/' + className + '/';
+        const imageFiles = Object.keys(imagesFolder.files).filter(path => 
+          path.startsWith(classPath) && 
+          !imagesFolder.files[path].dir && 
+          (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg'))
+        );
+        
+        for (const imagePath of imageFiles) {
+          const imageFile = imagesFolder.files[imagePath];
+          const base64 = await imageFile.async('base64');
+          const mimeType = imagePath.endsWith('.png') ? 'image/png' : 'image/jpeg';
+          examples[className].push({ data: `data:${mimeType};base64,${base64}` });
+        }
+      }
+    }
+    
+    // Load model if it exists
+    if (projectMetadata.hasModel && zipContent.folder('model')) {
+      const modelFolder = zipContent.folder('model');
+      
+      // Check if all required model files exist
+      if (!modelFolder.file('model.json') || !modelFolder.file('weights.json') || !modelFolder.file('weights.bin')) {
+        console.warn('Modell-Dateien unvollständig, überspringe Modell-Laden');
+      } else {
+        // Load model topology
+        const modelFile = await modelFolder.file('model.json').async('string');
+        const modelTopology = JSON.parse(modelFile);
+        
+        // Load weight specs
+        const weightSpecsFile = await modelFolder.file('weights.json').async('string');
+        const weightSpecs = JSON.parse(weightSpecsFile);
+        
+        // Load weights
+        const weightsFile = await modelFolder.file('weights.bin').async('blob');
+        const weightData = await weightsFile.arrayBuffer();
+        
+        // Create model artifacts
+        const modelArtifacts = {
+          modelTopology: modelTopology,
+          weightSpecs: weightSpecs,
+          weightData: new Uint8Array(weightData)
+        };
+        
+        // Load model from artifacts
+        classifierModel = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts));
+      }
+    }
+    
+    // Update model metadata
+    if (projectMetadata.modelMetadata) {
+      modelMetadata = projectMetadata.modelMetadata;
+    }
+    
+    // Update UI
+    renderClassList();
+    if (classes.length > 0) {
+      setActiveClass(classes[0]);
+    }
+    
+    // Enable details button if model was loaded
+    document.getElementById('model-details').disabled = !classifierModel;
+    
+    // Show notification
+    showNotification(`Projekt "${projectMetadata.projectName}" mit ${classes.length} Klassen und ${projectMetadata.totalImages} Bildern importiert`);
+    
+    document.getElementById('model-info').textContent = `Projekt geladen (${new Date(projectMetadata.date).toLocaleString('de-DE')})`;
+    document.getElementById('test-status').textContent = classifierModel ? 'Modell bereit zum Testen' : 'Bitte Modell trainieren';
+    document.getElementById('tryout-status').textContent = classifierModel ? 'Modell bereit zum Ausprobieren' : 'Bitte Modell trainieren';
+    
+    console.log('Project imported successfully');
+  } catch (error) {
+    console.error('Fehler beim Importieren des Projekts:', error);
+    document.getElementById('model-info').textContent = 'Fehler beim Importieren: ' + error.message;
+  }
+}
+
+/* Aufnahme - nur wenn Taste gedrückt */
+function startCapture() {
+  if (!activeClass) return alert('Klasse wählen');
+  captureInterval = setInterval(captureFrame, captureRate);
+}
+
+function stopCapture() {
+  clearInterval(captureInterval);
+}
+
+function captureFrame() {
+  if (!activeClass) return;
+  const video = document.getElementById('webcam');
+  const canvas = document.createElement('canvas');
+  canvas.width = 224;
+  canvas.height = 224;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const data = canvas.toDataURL('image/png');
+  examples[activeClass].push({ data });
+  renderClassList();
+  renderThumbs();
+}
+
+/* Testen - toggle on/off */
+function toggleTest() {
+  if (!classifierModel) {
+    document.getElementById('test-status').textContent = 'Bitte zuerst ein Modell trainieren oder laden';
+    return;
+  }
+  
+  isTestActive = !isTestActive;
+  const testBtn = document.getElementById('test-capture');
+  
+  if (isTestActive) {
+    testBtn.textContent = 'Stop';
+    testBtn.classList.add('active');
+    testInterval = setInterval(testModel, testRate);
+  } else {
+    clearInterval(testInterval);
+    testBtn.textContent = 'Testen';
+    testBtn.classList.remove('active');
+    document.getElementById('prediction-display').style.display = 'none';
+  }
+}
+
+async function testModel() {
+  if (!classifierModel) return;
+  
+  const video = document.getElementById('webcam-test');
+  const canvas = document.createElement('canvas');
+  canvas.width = 224;
+  canvas.height = 224;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  const input = tf.browser.fromPixels(canvas)
+    .toFloat()
+    .div(127.5)
+    .sub(1)
+    .expandDims(0);
+
+  const prediction = await tf.tidy(() => {
+    const emb = mobilenetModel.infer(input, true);
+    const logits = classifierModel.predict(emb);
+    return logits.data();
+  });
+  
+  // Find the class with highest probability
+  let maxProb = 0;
+  let maxIndex = 0;
+  for (let i = 0; i < classes.length; i++) {
+    if (prediction[i] > maxProb) {
+      maxProb = prediction[i];
+      maxIndex = i;
+      const bestClass = classes[maxIndex];
+      sendClassToMakeCode(bestClass);
+    }
+  }
+  
+  // Display the prediction
+  const predictionText = `${classes[maxIndex]}: ${(maxProb * 100).toFixed(1)}%`;
+  document.getElementById('prediction-display').textContent = predictionText;
+  document.getElementById('prediction-display').style.display = 'block';
+  
+  // Clean up tensors
+  input.dispose();
+}
+
+
+/* Tryout - toggle on/off */
+function toggleTryout() {
+  if (!classifierModel) {
+    document.getElementById('tryout-status').textContent = 'Bitte zuerst ein Modell laden';
+    return;
+  }
+  
+  isTryoutActive = !isTryoutActive;
+  const tryoutBtn = document.getElementById('tryout-capture');
+  
+  if (isTryoutActive) {
+    tryoutBtn.textContent = 'Stop';
+    tryoutBtn.classList.add('active');
+    tryoutInterval = setInterval(tryoutModel, testRate);
+  } else {
+    clearInterval(tryoutInterval);
+    tryoutBtn.textContent = 'Starten';
+    tryoutBtn.classList.remove('active');
+    document.getElementById('tryout-prediction').style.display = 'none';
+  }
+}
+
+async function tryoutModel() {
+  if (!classifierModel) return;
+  
+  const video = document.getElementById('webcam-tryout');
+  const canvas = document.createElement('canvas');
+  canvas.width = 224;
+  canvas.height = 224;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  const input = tf.browser.fromPixels(canvas)
+    .toFloat()
+    .div(127.5)
+    .sub(1)
+    .expandDims(0);
+
+  const prediction = await tf.tidy(() => {
+    const emb = mobilenetModel.infer(input, true);
+    const logits = classifierModel.predict(emb);
+    return logits.data();
+  });
+  
+  // Find the class with highest probability
+  let maxProb = 0;
+  let maxIndex = 0;
+  for (let i = 0; i < classes.length; i++) {
+    if (prediction[i] > maxProb) {
+      maxProb = prediction[i];
+      maxIndex = i;
+    }
+  }
+  
+  // Die Vorhersage anzeigen
+  const predictionText = `${classes[maxIndex]}: ${(maxProb * 100).toFixed(1)}%`;
+  document.getElementById('tryout-prediction').textContent = predictionText;
+  document.getElementById('tryout-prediction').style.display = 'block';
+  
+  // Clean up tensors
+  input.dispose();
+}
+
+
+// Bluetooth-Funktionen – aktualisiert, um der funktionierenden Implementierung zu entsprechen 
+async function connectButtonPressed() {
+  try {
+    console.log("Requesting Bluetooth Device...");
+    uBitDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: "Calliope mini" }],
+      optionalServices: [UART_SERVICE_UUID]
+    });
+
+    uBitDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+    console.log("Connecting to GATT Server...");
+    const server = await uBitDevice.gatt.connect();
+
+    console.log("Getting Service...");
+    const service = await server.getPrimaryService(UART_SERVICE_UUID);
+
+    console.log("Getting Characteristics...");
+    const txCharacteristic = await service.getCharacteristic(
+      UART_TX_CHARACTERISTIC_UUID
+    );
+    txCharacteristic.startNotifications();
+    txCharacteristic.addEventListener(
+      "characteristicvaluechanged",
+      onTxCharacteristicValueChanged
+    );
+    rxCharacteristic = await service.getCharacteristic(
+      UART_RX_CHARACTERISTIC_UUID
+    );
+    
+    // Update UI
+    document.getElementById('bluetooth-status').textContent = `Verbunden mit ${uBitDevice.name}`;
+    document.getElementById('bt-status-indicator').classList.add('connected');
+    document.getElementById('bt-status-text').textContent = `Verbunden mit ${uBitDevice.name}`;
+    document.getElementById('scan-bluetooth').style.display = 'none';
+    document.getElementById('disconnect-bluetooth').style.display = 'block';
+  } catch (error) {
+    console.log(error);
+    document.getElementById('bluetooth-status').textContent = 'Verbindung fehlgeschlagen';
+  }
+}
+
+function disconnectButtonPressed() {
+  if (!uBitDevice) {
+    return;
+  }
+
+  if (uBitDevice.gatt.connected) {
+    uBitDevice.gatt.disconnect();
+    console.log("Disconnected");
+  }
+}
+
+function onDisconnected(event) {
+  let device = event.target;
+  console.log(`Device ${device.name} is disconnected.`);
+  
+  // Update UI
+  document.getElementById('bluetooth-status').textContent = 'Verbindung getrennt';
+  document.getElementById('bt-status-indicator').classList.remove('connected');
+  document.getElementById('bt-status-text').textContent = 'Nicht verbunden';
+  document.getElementById('scan-bluetooth').style.display = 'block';
+  document.getElementById('disconnect-bluetooth').style.display = 'none';
+}
+
+async function sendUART(text) {
+  let encoder = new TextEncoder();
+  // Sicherstellen, dass der Text mit einem Zeilenumbruchzeichen endet, damit er auf dem Calliope mini korrekt analysiert werden kann.
+  const message = text + "\n";
+  queueGattOperation(() => rxCharacteristic.writeValue(encoder.encode(message))
+      .then(() => console.log(`Sent: "${message}"`))
+      .catch(error => console.error('Fehler beim Senden der Daten:', error)));
+}
+
+
+
+// Zustandsverwaltungsfunktionen für die Erkennung von Klassenänderungen
+
+
+function startPredictionTest() {
+    lastDetectedClass = null;
+    isFirstPrediction = true;
+    console.log("%c[PREDICTION] Test started - Ready to send first prediction", "color:#4da6ff;font-weight:bold;");
+}
+
+function stopPredictionTest() {
+    lastDetectedClass = null;
+    isFirstPrediction = true;
+    console.log("%c[PREDICTION] Test stopped", "color:#4da6ff;font-weight:bold;");
+}
+
+function sendClassIfChanged(detectedClass, certainty) {
+    const classChanged = detectedClass !== lastDetectedClass;
+
+    if (isFirstPrediction || classChanged) {
+        // An UART senden
+        sendUART(detectedClass);
+
+        // Status aktualisieren
+        lastDetectedClass = detectedClass;
+        isFirstPrediction = false;
+
+        console.log(
+            `%c[PREDICTION] Sent: Class="${detectedClass}" | Certainty=${(certainty*100).toFixed(1)}%`,
+            "color:#00dd55;font-weight:bold;"
+        );
+        return true;
+    }
+    return false;
+}
+
+function queueGattOperation(operation) {
+   queue = queue.then(operation, operation);
+   return queue;
+}
+
+function onTxCharacteristicValueChanged(event) {
+  let receivedData = [];
+  for (var i = 0; i < event.target.value.byteLength; i++) {
+    receivedData[i] = event.target.value.getUint8(i);
+  }
+
+  const receivedString = String.fromCharCode.apply(null, receivedData);
+  console.log(receivedString);
+  if (receivedString === "S") {
+    console.log("Shaken!");
+  }
+}
+
+// Modell speichern
+async function saveModel() {
+  if (!classifierModel) {
+    alert('Kein trainiertes Modell vorhanden');
+    return;
+  }
+  
+  document.getElementById('model-info').textContent = 'Speichere Modell...';
+  
+  try {
+    // ZIP-Datei erstellen
+    const zip = new JSZip();
+    
+    // Metadaten sichern
+    modelMetadata.date = new Date().toISOString();
+    modelMetadata.classes = classes;
+    zip.file('metadata.json', new Blob([JSON.stringify(modelMetadata)], {type: 'application/json'}));
+    
+    // Integrierte Speicherfunktion von TensorFlow.js nutzen, um Modellartefakte abzurufen.
+    const modelArtifacts = await classifierModel.save(tf.io.withSaveHandler(async (artifacts) => {
+      //Modelltopologie speichern
+      zip.file('model.json', new Blob([JSON.stringify(artifacts.modelTopology)], {type: 'application/json'}));
+      
+      // Gewichtsspezifikationen speichern
+      zip.file('weights.json', new Blob([JSON.stringify(artifacts.weightSpecs)], {type: 'application/json'}));
+      
+      // Gewichtsdaten speichern
+      zip.file('weights.bin', new Blob([artifacts.weightData], {type: 'application/octet-stream'}));
+      
+      // Dummy-Modellinformation zurückgeben, da wir uns um das eigentliche Speichern kümmern.
+      return {modelArtifactsInfo: {dateSaved: new Date()}};
+    }));
+    
+    // Zip-Datei erstellen und herunterladen
+    const content = await zip.generateAsync({type: 'blob'});
+    saveAs(content, `teachable_machine_model_${Date.now()}.zip`);
+    
+    document.getElementById('model-info').textContent = 'Modell erfolgreich gespeichert';
+  } catch (error) {
+    console.error('Fehler beim Speichern des Modells:', error);
+    document.getElementById('model-info').textContent = 'Fehler beim Speichern: ' + error.message;
+  }
+}
+
+//Modell laden
+async function loadModel(file) {
+  document.getElementById('model-info').textContent = 'Lade Modell...';
+  
+  try {
+    // Read the file as an ArrayBuffer first
+    const arrayBuffer = await file.arrayBuffer();
+    
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(arrayBuffer);
+    
+    // Check if all required files exist
+    if (!zipContent.file('model.json') || !zipContent.file('weights.json') || !zipContent.file('weights.bin')) {
+      throw new Error('Modell-Datei ist ungültig oder beschädigt');
+    }
+    
+    // Load metadata
+    let loadedClasses = [];
+    if (zipContent.file('metadata.json')) {
+      const metadataFile = await zipContent.file('metadata.json').async('string');
+      modelMetadata = JSON.parse(metadataFile);
+      loadedClasses = modelMetadata.classes || [];
+    }
+    
+    // Load model topology
+    const modelFile = await zipContent.file('model.json').async('string');
+    const modelTopology = JSON.parse(modelFile);
+    
+    // Load weight specs
+    const weightSpecsFile = await zipContent.file('weights.json').async('string');
+    const weightSpecs = JSON.parse(weightSpecsFile);
+    
+    // Load weights
+    const weightsFile = await zipContent.file('weights.bin').async('blob');
+    const weightData = await weightsFile.arrayBuffer();
+    
+    // Create model artifacts
+    const modelArtifacts = {
+      modelTopology: modelTopology,
+      weightSpecs: weightSpecs,
+      weightData: new Uint8Array(weightData)
+    };
+    
+    // Load model from artifacts using TensorFlow.js built-in method
+    classifierModel = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts));
+    
+    // Clear current classes and examples
+    classes = [];
+    for (const className in examples) {
+      delete examples[className];
+    }
+    
+    // Initialize examples object for each loaded class
+    loadedClasses.forEach(className => {
+      classes.push(className);
+      examples[className] = [];
+    });
+    
+    // Reset training history
+    trainingHistory = {
+      epochs: [],
+      accuracy: [],
+      loss: []
+    };
+    
+    // Update UI
+    renderClassList();
+    if (classes.length > 0) {
+      setActiveClass(classes[0]);
+    }
+    
+    // Enable details button
+    document.getElementById('model-details').disabled = false;
+    
+    // Show notification about loaded classes
+    showNotification(`Modell mit ${loadedClasses.length} Klassen geladen: ${loadedClasses.join(', ')}`);
+    
+    document.getElementById('model-info').textContent = `Modell "${modelMetadata.name}" geladen (${new Date(modelMetadata.date).toLocaleString('de-DE')})`;
+    document.getElementById('test-status').textContent = 'Modell bereit zum Testen';
+    console.log('Model loaded successfully');
+    // Training abgeschlossen → Hinweis ---
+    showNotification('Training abgeschlossen – das Modell ist nun im Bereich „Ausprobieren“ verfügbar.');
+
+  } catch (error) {
+    console.error('Fehler beim Laden des Modells:', error);
+    document.getElementById('model-info').textContent = 'Fehler beim Laden: ' + error.message;
+  }
+}
+
+/* Tryout Modell laden */
+async function loadTryoutModel(file) {
+  document.getElementById('tryout-model-info').textContent = 'Lade Modell...';
+  
+  try {
+    // Read the file as an ArrayBuffer first
+    const arrayBuffer = await file.arrayBuffer();
+    
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(arrayBuffer);
+    
+    // Check if all required files exist
+    if (!zipContent.file('model.json') || !zipContent.file('weights.json') || !zipContent.file('weights.bin')) {
+      throw new Error('Modell-Datei ist ungültig oder beschädigt');
+    }
+    
+    // Load metadata
+    let loadedClasses = [];
+    if (zipContent.file('metadata.json')) {
+      const metadataFile = await zipContent.file('metadata.json').async('string');
+      modelMetadata = JSON.parse(metadataFile);
+      loadedClasses = modelMetadata.classes || [];
+    }
+    
+    // Load model topology
+    const modelFile = await zipContent.file('model.json').async('string');
+    const modelTopology = JSON.parse(modelFile);
+    
+    // Load weight specs
+    const weightSpecsFile = await zipContent.file('weights.json').async('string');
+    const weightSpecs = JSON.parse(weightSpecsFile);
+    
+    // Load weights
+    const weightsFile = await zipContent.file('weights.bin').async('blob');
+    const weightData = await weightsFile.arrayBuffer();
+    
+    // Create model artifacts
+    const modelArtifacts = {
+      modelTopology: modelTopology,
+      weightSpecs: weightSpecs,
+      weightData: new Uint8Array(weightData)
+    };
+    
+    // Load model from artifacts using TensorFlow.js built-in method
+    classifierModel = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts));
+    
+    // Clear current classes and examples
+    classes = [];
+    for (const className in examples) {
+      delete examples[className];
+    }
+    
+    // Initialize examples object for each loaded class
+    loadedClasses.forEach(className => {
+      classes.push(className);
+      examples[className] = [];
+    });
+    
+    // Reset training history
+    trainingHistory = {
+      epochs: [],
+      accuracy: [],
+      loss: []
+    };
+    
+    // Update UI
+    renderClassList();
+    if (classes.length > 0) {
+      setActiveClass(classes[0]);
+    }
+    
+    // Enable details button
+    document.getElementById('model-details').disabled = false;
+    
+    // Show notification about loaded classes
+    showNotification(`Modell mit ${loadedClasses.length} Klassen geladen: ${loadedClasses.join(', ')}`);
+    
+    document.getElementById('tryout-model-info').textContent = `Modell "${modelMetadata.name}" geladen (${new Date(modelMetadata.date).toLocaleString('de-DE')})`;
+    document.getElementById('tryout-status').textContent = 'Modell bereit zum Ausprobieren';
+    console.log('Model loaded successfully');
+  } catch (error) {
+    console.error('Fehler beim Laden des Modells:', error);
+    document.getElementById('tryout-model-info').textContent = 'Fehler beim Laden: ' + error.message;
+  }
+}
+
+/* Dataset vorbereiten */
+async function prepareDataset() {
+  const xs = [];
+  const ys = [];
+  for (let i = 0; i < classes.length; i++) {
+    for (const ex of examples[classes[i]]) {
+      const img = new Image();
+      img.src = ex.data;
+      await new Promise(r => img.onload = r);
+      const input = tf.browser.fromPixels(img).toFloat().div(127.5).sub(1).resizeBilinear([224,224]).expandDims(0);
+      const emb = mobilenetModel.infer(input, true);
+      xs.push(emb.squeeze());
+      ys.push(tf.oneHot([i], classes.length).squeeze());
+      input.dispose();
+    }
+  }
+  return { xs: tf.stack(xs), ys: tf.stack(ys) };
+}
+
+/* Tab handling */
+function setupTabs() {
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabId = tab.getAttribute('data-tab');
+      
+      // Deactivate all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Activate selected tab and content
+      tab.classList.add('active');
+      document.getElementById(`${tabId}-tab`).classList.add('active');
+    });
+  });
+}
+
+/* Model Details Tab handling */
+function setupModelDetailsTabs() {
+  const tabs = document.querySelectorAll('.model-details-tab');
+  const tabContents = document.querySelectorAll('.model-details-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabId = tab.getAttribute('data-tab');
+      
+      // Deactivate all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Activate selected tab and content
+      tab.classList.add('active');
+      document.getElementById(`${tabId}-tab`).classList.add('active');
+    });
+  });
+}
+
+/* Navigation setup */
+function setupNavigation() {
+
+document.querySelectorAll('.header-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.getAttribute('data-view');
+    switchView(view);
+
+    document.querySelectorAll('.header-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupTabs();
+  setupNavigation();
+  setupModelDetailsTabs();
+
+  // Capture button - press and hold
+const captureBtn = document.getElementById('capture');
+if (captureBtn) {
+  captureBtn.addEventListener('mousedown', startCapture);
+  captureBtn.addEventListener('mouseup', stopCapture);
+  captureBtn.addEventListener('mouseleave', stopCapture);
+  captureBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startCapture();
+  });
+  captureBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    stopCapture();
+  });
+}
+
+// Header-Navigation verknüpfen
+document.querySelectorAll('.header-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.getAttribute('data-view');
+    switchView(view);
+
+    document.querySelectorAll('.header-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// Beim Laden -> Training/Test aktivieren
+document.querySelector('.header-btn[data-view="training"]')
+  .classList.add('active');
+
+
+  document.getElementById('create-class').onclick = () => {
+    const name = document.getElementById('new-class-name').value.trim();
+    if (!name) return;
+    addClass(name);
+    document.getElementById('new-class-name').value = '';
+    sendClassesToMakeCode(); 
+  };
+  document.getElementById('active-class').onchange = e => setActiveClass(e.target.value);
+  
+  document.getElementById('file-input').onchange = async e => {
+    if (!e.target.files.length) return;
+    
+    // Check if any of the files is a zip file
+    const zipFiles = Array.from(e.target.files).filter(file => file.name.endsWith('.zip'));
+    const imageFiles = Array.from(e.target.files).filter(file => !file.name.endsWith('.zip'));
+    
+    // Process zip files
+    if (zipFiles.length > 0) {
+      for (const zipFile of zipFiles) {
+        await processZipFile(zipFile);
+      }
+    }
+    
+    // Process regular image files
+    if (imageFiles.length > 0) {
+      if (!activeClass) {
+        alert('Bitte wähle zuerst eine Klasse aus');
+        e.target.value = '';
+        return;
+      }
+      
+      for (const file of imageFiles) {
+        const r = new FileReader();
+        r.onload = ev => {
+          examples[activeClass].push({ data: ev.target.result });
+          renderClassList();
+          renderThumbs();
+        };
+        r.readAsDataURL(file);
+      }
+    }
+    
+    e.target.value = ''; // Reset input so same file can be loaded again
+  };
+  
+  document.getElementById('clear-class').onclick = () => {
+    if (!activeClass) return;
+    examples[activeClass] = [];
+    renderClassList();
+    renderThumbs();
+  };
+  document.getElementById('train').onclick = async () => {
+    if (classes.length < 2) return alert('Mind. zwei Klassen nötig');
+    const status = document.getElementById('train-status');
+    status.textContent = 'Trainiere...';
+    status.style.color = '#007acc';
+    
+    // Reset training history
+    trainingHistory = {
+      epochs: [],
+      accuracy: [],
+      loss: []
+    };
+    
+    try {
+      const data = await prepareDataset();
+      classifierModel = tf.sequential();
+      classifierModel.add(tf.layers.dense({ inputShape: [data.xs.shape[1]], units: 64, activation: 'relu' }));
+      classifierModel.add(tf.layers.dense({ units: classes.length, activation: 'softmax' }));
+      classifierModel.compile({ optimizer: 'adam', loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+      
+      // Enable details button
+      document.getElementById('model-details').disabled = false;
+      
+      await classifierModel.fit(data.xs, data.ys, {
+        epochs: parseInt(document.getElementById('epochs').value) || 20,
+        callbacks: { 
+          onEpochEnd: (e, l) => {
+            // Update training history
+            trainingHistory.epochs.push(e + 1);
+            trainingHistory.accuracy.push(l.acc);
+            trainingHistory.loss.push(l.loss);
+            
+            status.textContent = `Epoch ${e+1}: acc=${(l.acc*100).toFixed(1)}%`;
+            console.log(`Epoch ${e+1}: acc=${(l.acc*100).toFixed(1)}%`);
+          }
+        }
+      });
+      
+      data.xs.dispose(); 
+      data.ys.dispose();
+      sendClassesToMakeCode();
+      status.textContent = 'Fertig';
+      status.style.color = '#4CAF50';
+      document.getElementById('test-status').textContent = 'Modell bereit zum Testen';
+      console.log('Training completed successfully');
+    } catch (error) {
+      console.error('Training error:', error);
+      status.textContent = 'Fehler beim Training';
+      status.style.color = '#f44336';
+    }
+  };
+  
+  // Model details button
+  document.getElementById('model-details').onclick = showModelDetails;
+  document.getElementById('close-details').onclick = hideModelDetails;
+  document.getElementById('dialog-overlay').onclick = hideModelDetails;
+  
+  // Test button - toggle on/off
+  const testBtn = document.getElementById('test-capture');
+  testBtn.addEventListener('click', toggleTest);
+  
+  // Tryout button - toggle on/off
+  const tryoutBtn = document.getElementById('tryout-capture');
+  tryoutBtn.addEventListener('click', toggleTryout);
+  
+  // Model save/load buttons
+  document.getElementById('save-model').onclick = saveModel;
+  document.getElementById('load-model').addEventListener('change', e => {
+    if (e.target.files.length > 0) {
+      loadModel(e.target.files[0]);
+      e.target.value = ''; // Reset input so same file can be loaded again
+    }
+  });
+  
+  // Tryout model load button
+  document.getElementById('tryout-load-model').addEventListener('change', e => {
+    if (e.target.files.length > 0) {
+      loadTryoutModel(e.target.files[0]);
+      e.target.value = ''; // Reset input so same file can be loaded again
+    }
+  });
+  
+  // Download buttons
+  document.getElementById('download-all').onclick = downloadAllClassImages;
+  
+  // Project buttons
+  document.getElementById('download-project').onclick = downloadProject;
+  document.getElementById('import-project').addEventListener('change', e => {
+    if (e.target.files.length > 0) {
+      importProject(e.target.files[0]);
+      e.target.value = ''; // Reset input so same file can be loaded again
+    }
+    sendClassesToMakeCode();
+  });
+  
+  // Import dialog buttons
+  document.getElementById('import-cancel').onclick = hideImportDialog;
+  document.getElementById('import-confirm').onclick = confirmImport;
+  
+  // Bluetooth scan button
+  document.getElementById('scan-bluetooth').onclick = connectButtonPressed;
+  document.getElementById('disconnect-bluetooth').onclick = disconnectButtonPressed;
+  
+init();
+});
+</script>
+<script>
+let mcApp = null;
+
+window.addEventListener("load", () => {
+    const iframe = document.getElementById("makecode-iframe");
+    if (!iframe) {
+        console.error("MakeCode iframe nicht gefunden!");
+        return;
+    }
+    mcApp = makecodeEmbed.makeCodeEmbedApp({
+        target: "calliope",
+        iframe: iframe,
+        autoRun: true
+    });
+});
+</script>
+
+</body>
+</html>
