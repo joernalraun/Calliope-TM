@@ -16,21 +16,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 
 <style>
-  // Material 3 Design System Variables - inspired by Calliope colors 
+ 
   :root {
-    // Primary color - Calliope green 
+
     --md-sys-color-primary: 125, 190, 66;
     --md-sys-color-on-primary: 255, 255, 255;
     --md-sys-color-primary-container: 223, 242, 207;
     --md-sys-color-on-primary-container: 28, 52, 8;
     
-    // Secondary color - Calliope blue 
+  
     --md-sys-color-secondary: 67, 160, 219;
     --md-sys-color-on-secondary: 255, 255, 255;
     --md-sys-color-secondary-container: 207, 235, 251;
     --md-sys-color-on-secondary-container: 8, 37, 52;
     
-    // Tertiary color - Calliope light green 
+
     --md-sys-color-tertiary: 187, 239, 83;
     --md-sys-color-on-tertiary: 219, 251, 128;
     --md-sys-color-tertiary-container: 187, 239, 83;
@@ -38,13 +38,13 @@
 
     --md-sys-color-hover: 152, 163, 167;
     
-    // Error colors 
+ 
     --md-sys-color-error: 186, 26, 26;
     --md-sys-color-on-error: 255, 255, 255;
     --md-sys-color-error-container: 255, 218, 214;
     --md-sys-color-on-error-container: 65, 0, 2;
     
-    // Surface colors 
+ 
     --md-sys-color-surface: 255, 255, 255;
     --md-sys-color-on-surface: 28, 27, 31;
     --md-sys-color-surface-variant: 232, 234, 237;
@@ -52,16 +52,16 @@
     --md-sys-color-outline: 118, 118, 128;
     --md-sys-color-outline-variant: 202, 204, 211;
     
-    // Background 
+
     --md-sys-color-background: 250, 250, 253;
     --md-sys-color-on-background: 28, 27, 31;
     
-    // Elevations 
+    
     --md-sys-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --md-sys-elevation-2: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --md-sys-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
     
-    // Typography 
+  
     --md-sys-typescale-body-medium-font: 'Inter', system-ui, -apple-system, sans-serif;
     --md-sys-typescale-body-medium-size: 14px;
     --md-sys-typescale-body-medium-line-height: 20px;
@@ -72,13 +72,13 @@
     --md-sys-typescale-title-medium-size: 16px;
     --md-sys-typescale-title-medium-line-height: 24px;
     
-    // Border radius 
+ 
     --md-sys-shape-corner-small: 8px;
     --md-sys-shape-corner-medium: 12px;
     --md-sys-shape-corner-large: 16px;
     --md-sys-shape-corner-extra-large: 28px;
 
-      // Calliope Button Colors – synchron zu Header-Buttons 
+   
   --btn-green: 83, 100%, 48%;      // hsl(83,100%,48%) 
   --btn-green-light: 83, 100%, 58%;
   --btn-text-dark: 0, 0%, 0%;      // schwarz 
@@ -86,7 +86,7 @@
   
   }
   
-  // Aufnahme starten → wie Modell trainieren 
+
 button.primary-action {
     background: rgb(var(--md-sys-color-primary));
     color: rgb(var(--md-sys-color-on-primary));
@@ -156,7 +156,7 @@ button.primary-action:hover {
     margin-bottom: 4px;
   }
   
-  // Button styles - Material 3 filled button 
+
   button {
     background: rgb(var(--md-sys-color-primary));
     color: rgb(var(--md-sys-color-on-primary));
@@ -197,8 +197,7 @@ button.primary-action:hover {
     box-shadow: none;
     cursor: not-allowed;
   }
-  
-  // Ghost button - Material 3 outlined button 
+
   button.ghost {
     background: transparent;
     color: rgb(var(--md-sys-color-hover));
@@ -225,7 +224,6 @@ button.primary-action:hover {
     background: rgb(var(--md-sys-color-tertiary));
   }
   
-  // Input styles 
   input[type="text"], 
   input[type="number"], 
   select {
@@ -249,7 +247,6 @@ button.primary-action:hover {
     padding: 7px 11px;
   }
   
-  // Class list 
   .class-list { 
     display: flex; 
     flex-direction: column; 
@@ -299,21 +296,19 @@ button.primary-action:hover {
     min-height: 32px;
   }
   
-// Container für die aufgenommenen Bilder 
 #thumbs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); // 4 Bilder pro Reihe 
+  grid-template-columns: repeat(4, 1fr); /* 4 Bilder pro Reihe */
   gap: 8px;
-  max-height: calc(3 * 80px + 2 * 8px); // 3 Reihen sichtbar (80px Höhe + Gap) 
-  overflow-y: auto;                      // scrollbar 
-  padding-right: 4px;                    // damit Scrollbar nichts überdeckt 
+  max-height: calc(3 * 80px + 2 * 8px); /* 3 Reihen sichtbar (80px Höhe + Gap) */
+  overflow-y: auto;                      /* scrollbar */
+  padding-right: 4px;                    /* damit Scrollbar nichts überdeckt */
 }
 
-// Jedes Thumbnail-Bild 
 .thumb {
   width: 100%;
-  height: 80px;          // einheitliche Höhe 
-  object-fit: cover;     // Bilder sauber zugeschnitten 
+  height: 80px;          /* einheitliche Höhe */
+  object-fit: cover;     /* Bilder sauber zugeschnitten */
   border-radius: 4px;
 }
 
@@ -377,7 +372,7 @@ button.primary-action:hover {
     display: flex;
     gap: 8px;
     position: absolute;
-    top: 6px; // unterhalb des Headers 
+    top: 6px; /* unterhalb des Headers */
     left: 24px;
     padding: 10px 20px;
     text-align: center;
@@ -385,7 +380,7 @@ button.primary-action:hover {
     z-index: 5;
     margin: 0 auto;
     width: 100px;
-    max-width: 900px; // optional: gleiche Breite wie dein Inhalt 
+    max-width: 900px; /* optional: gleiche Breite wie dein Inhalt */
   }
   
   .tab { 
@@ -452,7 +447,6 @@ button.primary-action:hover {
     line-height: 16px;
   }
   
-  // File input label styling 
   label.file-label {
     background: transparent;
     color: rgb(var(--md-sys-color-primary));
@@ -481,16 +475,16 @@ button.primary-action:hover {
   label.file-label:active {
     background: rgba(var(--md-sys-color-primary), 0.12);
   }
-  // Dateiauswahl-Button – gleiche Höhe wie "Leeren" 
+
 label.file-label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 60px;                 // exakt gleiche Höhe 
-  padding: 24px;           // vertikal nun durch height geregelt 
+  height: 60px;                 /*/ exakt gleiche Höhe */
+  padding: 24px;           /* vertikal nun durch height geregelt */
   box-sizing: border-box;
 }
-  // Hamburger Menu 
+
   .menu-container {
     position: fixed;
     top: 16px;
@@ -573,7 +567,6 @@ label.file-label {
     color: rgb(var(--md-sys-color-on-secondary-container));
   }
   
-  // Try out view styles 
   .try-out-container {
     display: flex;
     flex-direction: column;
@@ -652,7 +645,6 @@ label.file-label {
     border-color: rgb(var(--md-sys-color-primary));
   }
   
-  // View adjustments 
   .view {
     display: flex;
     width: 100%;
@@ -678,7 +670,7 @@ label.file-label {
   }
 
   
-  // Import dialog styles 
+
   .import-dialog {
     position: fixed;
     top: 50%;
@@ -739,7 +731,7 @@ label.file-label {
     backdrop-filter: blur(4px);
   }
   
-  // Model load notification 
+
   .model-load-notification {
     position: fixed;
     bottom: 24px;
@@ -767,7 +759,6 @@ label.file-label {
     }
   }
   
-  // Project buttons styling 
   .project-buttons {
     margin-top: auto;
     padding-top: 16px;
@@ -777,14 +768,13 @@ label.file-label {
     gap: 10px;
   }
   
-  // Divider 
+
   hr {
     border: none;
     border-top: 1px solid rgb(var(--md-sys-color-outline-variant));
     margin: 16px 0;
   }
   
-  // Model details dialog styles 
   .model-details-dialog {
     position: fixed;
     top: 50%;
@@ -991,7 +981,7 @@ label.file-label {
     background: rgba(var(--md-sys-color-error), 0.2);
     color: rgb(var(--md-sys-color-error));
   }
-  // --- Schwarzer Header im Stil von campus.calliope.cc --- 
+
 #main-header {
   background: #1b1c1d;
   position: fixed;
@@ -1036,14 +1026,14 @@ label.file-label {
   gap: 12px;
 }
 
-// Grundstil für alle Header-Buttons 
+
 .header-btn {
   padding: 8px 18px;
   border-radius: 20px;
 
-  background-color: transparent;          // nicht aktiv: kein Hintergrund 
-  border: 1px solid transparent;          // kein Rahmen 
-  color: white;                           // weißer Text 
+  background-color: transparent;          /* nicht aktiv: kein Hintergrund */
+  border: 1px solid transparent;          /* kein Rahmen */
+  color: white;                         /* weißer Text */
   
   font-size: 14px;
   font-weight: 500;
@@ -1052,34 +1042,32 @@ label.file-label {
   transition: background-color 0.2s, color 0.2s;
 }
 
-// Hover für NICHT AKTIVE Buttons → bleibt identisch 
 .header-btn:not(.active):hover {
   background-color: rgba(255,255,255,0.15);
 }
 
 // AKTIVER Button 
 .header-btn.active {
-  background-color: hsl(83,100,48,1);     // grün wie gewünscht 
+  background-color: hsl(83,100,48,1);     
   border-color: hsl(83,100,48,1);
 
-  color: black;                           // schwarzer Text 
+  color: black;                          
   font-weight: 600;
 }
 
-// Hover für AKTIVEN Button → etwas heller 
+/* Hover für AKTIVEN Button → etwas heller */
 .header-btn.active:hover {
-  background-color: hsl(83,100,58,1);     // 10% mehr Lightness 
-  color: black;                           // bleibt schwarz 
+  background-color: hsl(83,100,58,1);     /* 10% mehr Lightness */
+  color: black;                           /* bleibt schwarz */
 }
 
 
-// Abstand zwischen Header und Inhalt 
 
 body {
   margin-top: 50px;
 }
 
-// --- Pixelperfekte Zentrierung für ALLE Buttons (und file-labels) --- 
+
 button,
 label.file-label,
 .c-btn,
@@ -1093,7 +1081,7 @@ label.file-label,
 }
 
 #apply-view .video-wrap {
-    height: calc(100vh - 60px); // genau wie andere fullscreen videos 
+    height: calc(100vh - 60px); 
 }
 
 #apply-prediction {
@@ -1106,7 +1094,7 @@ label.file-label,
   height: 100%;
   border: none;
   border-radius: 16px;
-  margin: 0;               // Weiß oben entfernen 
+  margin: 0;      
   box-shadow: var(--md-sys-elevation-2);
 }
 
@@ -2416,7 +2404,7 @@ async function importProject(file) {
     if (classes.length > 0) {
       setActiveClass(classes[0]);
     }
-    
+   
     // Enable details button if model was loaded
     document.getElementById('model-details').disabled = !classifierModel;
     
@@ -2426,7 +2414,7 @@ async function importProject(file) {
     document.getElementById('model-info').textContent = `Projekt geladen (${new Date(projectMetadata.date).toLocaleString('de-DE')})`;
     document.getElementById('test-status').textContent = classifierModel ? 'Modell bereit zum Testen' : 'Bitte Modell trainieren';
     document.getElementById('tryout-status').textContent = classifierModel ? 'Modell bereit zum Ausprobieren' : 'Bitte Modell trainieren';
-    
+    mobilenetModel = await mobilenet.load();
     console.log('Project imported successfully');
   } catch (error) {
     console.error('Fehler beim Importieren des Projekts:', error);
@@ -2544,7 +2532,7 @@ function toggleTryout() {
 
 async function tryoutModel() {
   if (!classifierModel) return;
-  
+  if (!mobilenetModel) return; 
   const video = document.getElementById('webcam-tryout');
   const canvas = document.createElement('canvas');
   canvas.width = 224;
