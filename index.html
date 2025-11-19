@@ -1272,6 +1272,10 @@ label.file-label,
         <button id="disconnect-bluetooth" style="display:none;">Trennen</button>
         <div id="bluetooth-devices" style="margin-top:10px;"></div>
         <div id="bluetooth-status" class="bluetooth-status">Bereit zur Verbindung</div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+        <input type="checkbox" id="send-every-prediction">
+        Jede Klasse dauerhaft senden (ab 70% Wahrscheinlichkeit)
+      </label>
       </div>
 
     </div> <!-- try-out-container -->
@@ -1281,10 +1285,10 @@ label.file-label,
   <!-- RECHTER BEREICH: EDITOR -->
   <div class="right-panel" id="makecode-editor-container" style="display:none;">
     <iframe
-      id="makecode-iframe"
-      src="https://makecode.calliope.cc"
-      style="width:100%;height:100%;border:none;border-radius:16px;margin:0;">
-    </iframe>
+    id="calliope-editor"
+    src="https://makecode.calliope.cc/?controller=1&nocookiebanner=1&ws=browser"
+    style="width: 100%; height: 100%; border: 0;border-radius:16px;margin:0;"
+    allowfullscreen></iframe>
   </div>
 
 </div> <!-- tryout-view -->
@@ -1447,6 +1451,8 @@ let isTestActive = false;
 let isTryoutActive = false;
 let pendingZipImages = [];
 let pendingZipClass = null;
+let lastSendTime = 0;
+const SEND_INTERVAL_MS = 500;  // max. 4 Messages/sec
 
 // Training history for graphs
 let trainingHistory = {
@@ -1497,7 +1503,11 @@ function switchView(viewName) {
     view.style.display = 'none';
   });
   document.getElementById(`${viewName}-view`).style.display = 'flex';
-  
+  if (viewName === "tryout") {
+    setTimeout(() => {
+        sendClassesToMakeCode();
+    }, 800); // kurze Verzögerung für sicher geladenen Editor
+  }
   // Initialize view-specific features
   // Initialize view-specific features
 if (viewName === 'tryout' || viewName === 'apply') {
@@ -1651,6 +1661,44 @@ function renderThumbs() {
   document.getElementById('capture-count').textContent = arr.length + ' Bilder';
 }
 
+function sendClassesToMakeCode() {
+    const iframe = document.getElementById("calliope-editor");
+    if (!iframe) return;
+
+    const editorWindow = iframe.contentWindow;
+
+    // 1. Klassennamen in TS-Code gießen
+    const tsClassList = classes.map(c => `"${c}"`).join(", ");
+
+    const mainTS = `
+let classes = [${tsClassList}]
+
+basic.showString("READY")
+`;
+
+    // 2. MakeCode-Projekt konstruieren (Minimalprojekt)
+    const project = {
+        text: {
+            "main.ts": mainTS.trim(),
+            "pxt.json": JSON.stringify({
+                name: "tm-project",
+                dependencies: { core: "*" },
+                files: ["main.ts"]
+            }),
+            "README.md": "automatically generated"
+        }
+    };
+
+    // 3. MakeCode per postMessage ansprechen
+    const message = {
+        type: "pxteditor",
+        action: "importproject",
+        project: project,
+        response: false
+    };
+
+    editorWindow.postMessage(message, "*");
+}
 
 // Model Details Dialog 
 function showModelDetails() {
@@ -2572,9 +2620,8 @@ async function tryoutModel() {
   }
 
   // Bluetooth nur wie bisher (unverändert)
-  if (rxCharacteristic && maxProb > 0.7) {
-    const className = classes[maxIndex];
-    sendClassIfChanged(className, maxProb);
+  if (rxCharacteristic) {
+    sendPrediction(classes[maxIndex], maxProb);
   }
 
   // Tensors bereinigen
@@ -2674,25 +2721,37 @@ function stopPredictionTest() {
     console.log("%c[PREDICTION] Test stopped", "color:#4da6ff;font-weight:bold;");
 }
 
-function sendClassIfChanged(detectedClass, certainty) {
+function sendPrediction(detectedClass, certainty) {
+
+    const alwaysSend = document.getElementById("send-every-prediction")?.checked ?? false;
+
+    // Sendeintervall begrenzen
+    const now = Date.now();
+    if (now - lastSendTime < SEND_INTERVAL_MS) return;
+    
+    // Beide Modi haben unterschiedliche Bedingungen
+    if (alwaysSend) {
+        if (certainty >= 0.70) {
+            sendUART(detectedClass);
+            lastSendTime = now;
+            console.log("[SEND] ALWAYS mode:", detectedClass);
+        }
+        return;
+    }
+
+    // Normalmodus: nur bei Änderung + >70%
     const classChanged = detectedClass !== lastDetectedClass;
 
-    if (isFirstPrediction || classChanged) {
-        // An UART senden
+    if ((isFirstPrediction || classChanged) && certainty >= 0.70) {
         sendUART(detectedClass);
-
-        // Status aktualisieren
         lastDetectedClass = detectedClass;
         isFirstPrediction = false;
+        lastSendTime = now;
 
-        console.log(
-            `%c[PREDICTION] Sent: Class="${detectedClass}" | Certainty=${(certainty*100).toFixed(1)}%`,
-            "color:#00dd55;font-weight:bold;"
-        );
-        return true;
+        console.log("[SEND] CHANGE mode:", detectedClass);
     }
-    return false;
 }
+
 
 function queueGattOperation(operation) {
    queue = queue.then(operation, operation);
