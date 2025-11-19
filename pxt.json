@@ -1,0 +1,14 @@
+{
+  "name": "tm-bt-project",
+  "description": "Generated from Teachable Machine",
+  "dependencies": {
+    "core": "*",
+    "bluetooth": "*",
+    "LofiRobot": "github:calliope-edu/lofirobot"
+  },
+  "files": [
+    "main.ts"
+  ],
+  "target": "calliopemini",
+  "preferredEditor": "ts"
+}

@@ -2771,6 +2771,58 @@ function onTxCharacteristicValueChanged(event) {
   }
 }
 
+
+function generateMakeCodeProject(classes) {
+    const tsClassList = classes.map(c => `"${c}"`).join(", ");
+
+    const mainTS = `
+let classes = [${tsClassList}]
+let lastClass = ""
+
+bluetooth.startUartService()
+
+bluetooth.onUartDataReceived(serial.delimiters(Delimiters.NewLine), function () {
+    let received = bluetooth.uartReadUntil(serial.delimiters(Delimiters.NewLine)).trim()
+    if (received == lastClass) return
+    lastClass = received
+    handleClass(received)
+})
+
+function handleClass(name: string) {
+    basic.showString(name)
+}
+`;
+
+    const project = {
+        text: {
+            "main.ts": mainTS.trim(),
+            "pxt.json": JSON.stringify({
+                name: "tm-bt-project",
+                dependencies: {
+                    core: "*",
+                    bluetooth: "*"
+                },
+                files: ["main.ts"]
+            }),
+            "README.md": "Automatically generated"
+        }
+    };
+
+    return project;
+}
+function sendMakeCodeProject(classes) {
+    const project = generateMakeCodeProject(classes);
+    const iframe = document.getElementById("calliope-editor");
+
+    iframe.contentWindow.postMessage({
+        type: "pxteditor",
+        action: "importproject",
+        project
+    }, "*");
+}
+
+
+
 // Modell speichern
 async function saveModel() {
   if (!classifierModel) {
