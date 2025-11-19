@@ -1092,6 +1092,14 @@ label.file-label,
   text-align: center !important;
 }
 
+#apply-view .video-wrap {
+    height: calc(100vh - 60px); /* genau wie andere fullscreen videos */
+}
+
+#apply-prediction {
+    display: block !important;
+    z-index: 9999 !important;
+}
 
 #makecode-iframe {
   width: 100%;
@@ -1119,6 +1127,7 @@ label.file-label,
       <!-- Navigation Buttons -->
       <button class="header-btn" data-view="training">Training/Test</button>
       <button class="header-btn" data-view="tryout">Ausprobieren</button>
+      <button class="header-btn" data-view="apply">Anwenden</button>
     </div>
   </div>
 </header>
@@ -1291,7 +1300,20 @@ label.file-label,
   </div>
 
 </div> <!-- tryout-view -->
+<!-- APPLY VIEW -->
+<div id="apply-view" class="view" style="display:none;">
 
+  <div class="right-panel" style="width:100%; padding-left:0;">
+
+    <div class="video-wrap">
+      <video id="webcam-apply" autoplay playsinline></video>
+      <div id="apply-prediction" class="prediction-display"></div>
+
+    </div>
+
+  </div>
+
+</div>
 
 
 <!-- Import Dialog (hidden by default) -->
@@ -1489,9 +1511,23 @@ function switchView(viewName) {
   document.getElementById(`${viewName}-view`).style.display = 'flex';
   
   // Initialize view-specific features
-  if (viewName === 'tryout') {
+  // Initialize view-specific features
+if (viewName === 'tryout' || viewName === 'apply') {
   initSharedCamera();   // nutzt denselben Stream
+}
+
+// Im ANWENDEN-View Vorhersage automatisch aktivieren
+if (viewName === 'apply') {
+  if (!isTryoutActive) {
+    isTryoutActive = true;
+    const tryoutBtn = document.getElementById('tryout-capture');
+    if (tryoutBtn) {
+      tryoutBtn.textContent = 'Stop';
+      tryoutBtn.classList.add('active');
+    }
+    tryoutInterval = setInterval(tryoutModel, testRate);
   }
+}
 }
 
 /* Gemeinsame Webcam für alle Video-Elemente */
@@ -1505,7 +1541,7 @@ async function initSharedCamera() {
     }
 
     // Liste aller Video-Elemente, die den Stream nutzen sollen
-    const videoIds = ["webcam", "webcam-test", "webcam-tryout"];
+    const videoIds = ["webcam", "webcam-test", "webcam-tryout", "webcam-apply"];
 
     for (const id of videoIds) {
       const v = document.getElementById(id);
@@ -2481,6 +2517,7 @@ async function testModel() {
 }
 
 /* Tryout - toggle on/off */
+/* Tryout - toggle on/off */
 function toggleTryout() {
   if (!classifierModel) {
     document.getElementById('tryout-status').textContent = 'Bitte zuerst ein Modell laden';
@@ -2498,9 +2535,14 @@ function toggleTryout() {
     clearInterval(tryoutInterval);
     tryoutBtn.textContent = 'Starten';
     tryoutBtn.classList.remove('active');
-    document.getElementById('tryout-prediction').style.display = 'none';
+    const tryoutPred = document.getElementById('tryout-prediction');
+    if (tryoutPred) tryoutPred.style.display = 'none';
+
+    const applyPred = document.getElementById('apply-prediction');
+    if (applyPred) applyPred.style.display = 'none';
   }
 }
+
 
 async function tryoutModel() {
   if (!classifierModel) return;
@@ -2516,7 +2558,7 @@ async function tryoutModel() {
   const emb = mobilenetModel.infer(input, true);
   const prediction = await classifierModel.predict(emb).data();
   
-  // Find the class with highest probability
+  // Klasse mit der höchsten Wahrscheinlichkeit finden
   let maxProb = 0;
   let maxIndex = 0;
   for (let i = 0; i < classes.length; i++) {
@@ -2526,29 +2568,34 @@ async function tryoutModel() {
     }
   }
   
-  // Die Vorhersage anzeigen
+  // Gemeinsamer Text für beide Overlays
   const predictionText = `${classes[maxIndex]}: ${(maxProb * 100).toFixed(1)}%`;
-  document.getElementById('tryout-prediction').textContent = predictionText;
-  document.getElementById('tryout-prediction').style.display = 'block';
   
-  // An Calliope mini über Bluetooth senden, wenn verbunden und die Zuverlässigkeit hoch genug ist.
-  // Optimiertes Bluetooth-Senden (nur beste Klasse, stabil, gedrosselt)
+  // 1) Overlay im AUSPROBIEREN-View
+  const tryoutPred = document.getElementById('tryout-prediction');
+  if (tryoutPred) {
+    tryoutPred.textContent = predictionText;
+    tryoutPred.style.display = 'block';
+  }
 
-if (rxCharacteristic) {
-    // Klasse mit höchster Wahrscheinlichkeit ist bereits ermittelt
+  // 2) Overlay im ANWENDEN-View (gleicher Text, gleiche Optik)
+  const applyPred = document.getElementById('apply-prediction');
+  if (applyPred) {
+    applyPred.textContent = predictionText;
+    applyPred.style.display = 'block';
+  }
 
-    // Nur wenn Wahrscheinlichkeit ausreichend hoch
-    if (maxProb > 0.75) {
-        const className = classes[maxIndex];
-        sendClassIfChanged(className, maxProb);
-    }
-}
+  // Bluetooth nur wie bisher (unverändert)
+  if (rxCharacteristic && maxProb > 0.7) {
+    const className = classes[maxIndex];
+    sendClassIfChanged(className, maxProb);
+  }
 
-  
   // Tensors bereinigen
   input.dispose();
   emb.dispose();
 }
+
 
 // Bluetooth-Funktionen – aktualisiert, um der funktionierenden Implementierung zu entsprechen 
 async function connectButtonPressed() {
