@@ -16,21 +16,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 
 <style>
-  /* Material 3 Design System Variables - inspired by Calliope colors */
+  // Material 3 Design System Variables - inspired by Calliope colors 
   :root {
-    /* Primary color - Calliope green */
+    // Primary color - Calliope green 
     --md-sys-color-primary: 125, 190, 66;
     --md-sys-color-on-primary: 255, 255, 255;
     --md-sys-color-primary-container: 223, 242, 207;
     --md-sys-color-on-primary-container: 28, 52, 8;
     
-    /* Secondary color - Calliope blue */
+    // Secondary color - Calliope blue 
     --md-sys-color-secondary: 67, 160, 219;
     --md-sys-color-on-secondary: 255, 255, 255;
     --md-sys-color-secondary-container: 207, 235, 251;
     --md-sys-color-on-secondary-container: 8, 37, 52;
     
-    /* Tertiary color - Calliope light green */
+    // Tertiary color - Calliope light green 
     --md-sys-color-tertiary: 187, 239, 83;
     --md-sys-color-on-tertiary: 219, 251, 128;
     --md-sys-color-tertiary-container: 187, 239, 83;
@@ -38,13 +38,13 @@
 
     --md-sys-color-hover: 152, 163, 167;
     
-    /* Error colors */
+    // Error colors 
     --md-sys-color-error: 186, 26, 26;
     --md-sys-color-on-error: 255, 255, 255;
     --md-sys-color-error-container: 255, 218, 214;
     --md-sys-color-on-error-container: 65, 0, 2;
     
-    /* Surface colors */
+    // Surface colors 
     --md-sys-color-surface: 255, 255, 255;
     --md-sys-color-on-surface: 28, 27, 31;
     --md-sys-color-surface-variant: 232, 234, 237;
@@ -52,16 +52,16 @@
     --md-sys-color-outline: 118, 118, 128;
     --md-sys-color-outline-variant: 202, 204, 211;
     
-    /* Background */
+    // Background 
     --md-sys-color-background: 250, 250, 253;
     --md-sys-color-on-background: 28, 27, 31;
     
-    /* Elevations */
+    // Elevations 
     --md-sys-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --md-sys-elevation-2: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --md-sys-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
     
-    /* Typography */
+    // Typography 
     --md-sys-typescale-body-medium-font: 'Inter', system-ui, -apple-system, sans-serif;
     --md-sys-typescale-body-medium-size: 14px;
     --md-sys-typescale-body-medium-line-height: 20px;
@@ -72,21 +72,21 @@
     --md-sys-typescale-title-medium-size: 16px;
     --md-sys-typescale-title-medium-line-height: 24px;
     
-    /* Border radius */
+    // Border radius 
     --md-sys-shape-corner-small: 8px;
     --md-sys-shape-corner-medium: 12px;
     --md-sys-shape-corner-large: 16px;
     --md-sys-shape-corner-extra-large: 28px;
 
-      /* Calliope Button Colors – synchron zu Header-Buttons */
-  --btn-green: 83, 100%, 48%;      /* hsl(83,100%,48%) */
+      // Calliope Button Colors – synchron zu Header-Buttons 
+  --btn-green: 83, 100%, 48%;      // hsl(83,100%,48%) 
   --btn-green-light: 83, 100%, 58%;
-  --btn-text-dark: 0, 0%, 0%;      /* schwarz */
-  --btn-text-light: 0, 0%, 100%;   /* weiß */
+  --btn-text-dark: 0, 0%, 0%;      // schwarz 
+  --btn-text-light: 0, 0%, 100%;   // weiß 
   
   }
   
-  /* Aufnahme starten → wie Modell trainieren */
+  // Aufnahme starten → wie Modell trainieren 
 button.primary-action {
     background: rgb(var(--md-sys-color-primary));
     color: rgb(var(--md-sys-color-on-primary));
@@ -156,7 +156,7 @@ button.primary-action:hover {
     margin-bottom: 4px;
   }
   
-  /* Button styles - Material 3 filled button */
+  // Button styles - Material 3 filled button 
   button {
     background: rgb(var(--md-sys-color-primary));
     color: rgb(var(--md-sys-color-on-primary));
@@ -198,7 +198,7 @@ button.primary-action:hover {
     cursor: not-allowed;
   }
   
-  /* Ghost button - Material 3 outlined button */
+  // Ghost button - Material 3 outlined button 
   button.ghost {
     background: transparent;
     color: rgb(var(--md-sys-color-hover));
@@ -225,7 +225,7 @@ button.primary-action:hover {
     background: rgb(var(--md-sys-color-tertiary));
   }
   
-  /* Input styles */
+  // Input styles 
   input[type="text"], 
   input[type="number"], 
   select {
@@ -249,7 +249,7 @@ button.primary-action:hover {
     padding: 7px 11px;
   }
   
-  /* Class list */
+  // Class list 
   .class-list { 
     display: flex; 
     flex-direction: column; 
@@ -299,21 +299,21 @@ button.primary-action:hover {
     min-height: 32px;
   }
   
-/* Container für die aufgenommenen Bilder */
+// Container für die aufgenommenen Bilder 
 #thumbs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 Bilder pro Reihe */
+  grid-template-columns: repeat(4, 1fr); // 4 Bilder pro Reihe 
   gap: 8px;
-  max-height: calc(3 * 80px + 2 * 8px); /* 3 Reihen sichtbar (80px Höhe + Gap) */
-  overflow-y: auto;                      /* scrollbar */
-  padding-right: 4px;                    /* damit Scrollbar nichts überdeckt */
+  max-height: calc(3 * 80px + 2 * 8px); // 3 Reihen sichtbar (80px Höhe + Gap) 
+  overflow-y: auto;                      // scrollbar 
+  padding-right: 4px;                    // damit Scrollbar nichts überdeckt 
 }
 
-/* Jedes Thumbnail-Bild */
+// Jedes Thumbnail-Bild 
 .thumb {
   width: 100%;
-  height: 80px;          /* einheitliche Höhe */
-  object-fit: cover;     /* Bilder sauber zugeschnitten */
+  height: 80px;          // einheitliche Höhe 
+  object-fit: cover;     // Bilder sauber zugeschnitten 
   border-radius: 4px;
 }
 
@@ -377,7 +377,7 @@ button.primary-action:hover {
     display: flex;
     gap: 8px;
     position: absolute;
-    top: 6px; /* unterhalb des Headers */
+    top: 6px; // unterhalb des Headers 
     left: 24px;
     padding: 10px 20px;
     text-align: center;
@@ -385,7 +385,7 @@ button.primary-action:hover {
     z-index: 5;
     margin: 0 auto;
     width: 100px;
-    max-width: 900px; /* optional: gleiche Breite wie dein Inhalt */
+    max-width: 900px; // optional: gleiche Breite wie dein Inhalt 
   }
   
   .tab { 
@@ -452,7 +452,7 @@ button.primary-action:hover {
     line-height: 16px;
   }
   
-  /* File input label styling */
+  // File input label styling 
   label.file-label {
     background: transparent;
     color: rgb(var(--md-sys-color-primary));
@@ -481,16 +481,16 @@ button.primary-action:hover {
   label.file-label:active {
     background: rgba(var(--md-sys-color-primary), 0.12);
   }
-  /* Dateiauswahl-Button – gleiche Höhe wie "Leeren" */
+  // Dateiauswahl-Button – gleiche Höhe wie "Leeren" 
 label.file-label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 60px;                 /* exakt gleiche Höhe */
-  padding: 24px;           /* vertikal nun durch height geregelt */
+  height: 60px;                 // exakt gleiche Höhe 
+  padding: 24px;           // vertikal nun durch height geregelt 
   box-sizing: border-box;
 }
-  /* Hamburger Menu */
+  // Hamburger Menu 
   .menu-container {
     position: fixed;
     top: 16px;
@@ -573,7 +573,7 @@ label.file-label {
     color: rgb(var(--md-sys-color-on-secondary-container));
   }
   
-  /* Try out view styles */
+  // Try out view styles 
   .try-out-container {
     display: flex;
     flex-direction: column;
@@ -652,7 +652,7 @@ label.file-label {
     border-color: rgb(var(--md-sys-color-primary));
   }
   
-  /* View adjustments */
+  // View adjustments 
   .view {
     display: flex;
     width: 100%;
@@ -678,7 +678,7 @@ label.file-label {
   }
 
   
-  /* Import dialog styles */
+  // Import dialog styles 
   .import-dialog {
     position: fixed;
     top: 50%;
@@ -739,7 +739,7 @@ label.file-label {
     backdrop-filter: blur(4px);
   }
   
-  /* Model load notification */
+  // Model load notification 
   .model-load-notification {
     position: fixed;
     bottom: 24px;
@@ -767,7 +767,7 @@ label.file-label {
     }
   }
   
-  /* Project buttons styling */
+  // Project buttons styling 
   .project-buttons {
     margin-top: auto;
     padding-top: 16px;
@@ -777,14 +777,14 @@ label.file-label {
     gap: 10px;
   }
   
-  /* Divider */
+  // Divider 
   hr {
     border: none;
     border-top: 1px solid rgb(var(--md-sys-color-outline-variant));
     margin: 16px 0;
   }
   
-  /* Model details dialog styles */
+  // Model details dialog styles 
   .model-details-dialog {
     position: fixed;
     top: 50%;
@@ -991,7 +991,7 @@ label.file-label {
     background: rgba(var(--md-sys-color-error), 0.2);
     color: rgb(var(--md-sys-color-error));
   }
-  /* --- Schwarzer Header im Stil von campus.calliope.cc --- */
+  // --- Schwarzer Header im Stil von campus.calliope.cc --- 
 #main-header {
   background: #1b1c1d;
   position: fixed;
@@ -1036,14 +1036,14 @@ label.file-label {
   gap: 12px;
 }
 
-/* Grundstil für alle Header-Buttons */
+// Grundstil für alle Header-Buttons 
 .header-btn {
   padding: 8px 18px;
   border-radius: 20px;
 
-  background-color: transparent;          /* nicht aktiv: kein Hintergrund */
-  border: 1px solid transparent;          /* kein Rahmen */
-  color: white;                           /* weißer Text */
+  background-color: transparent;          // nicht aktiv: kein Hintergrund 
+  border: 1px solid transparent;          // kein Rahmen 
+  color: white;                           // weißer Text 
   
   font-size: 14px;
   font-weight: 500;
@@ -1052,34 +1052,34 @@ label.file-label {
   transition: background-color 0.2s, color 0.2s;
 }
 
-/* Hover für NICHT AKTIVE Buttons → bleibt identisch */
+// Hover für NICHT AKTIVE Buttons → bleibt identisch 
 .header-btn:not(.active):hover {
   background-color: rgba(255,255,255,0.15);
 }
 
-/* AKTIVER Button */
+// AKTIVER Button 
 .header-btn.active {
-  background-color: hsl(83,100,48,1);     /* grün wie gewünscht */
+  background-color: hsl(83,100,48,1);     // grün wie gewünscht 
   border-color: hsl(83,100,48,1);
 
-  color: black;                           /* schwarzer Text */
+  color: black;                           // schwarzer Text 
   font-weight: 600;
 }
 
-/* Hover für AKTIVEN Button → etwas heller */
+// Hover für AKTIVEN Button → etwas heller 
 .header-btn.active:hover {
-  background-color: hsl(83,100,58,1);     /* 10% mehr Lightness */
-  color: black;                           /* bleibt schwarz */
+  background-color: hsl(83,100,58,1);     // 10% mehr Lightness 
+  color: black;                           // bleibt schwarz 
 }
 
 
-/* Abstand zwischen Header und Inhalt */
+// Abstand zwischen Header und Inhalt 
 
 body {
   margin-top: 50px;
 }
 
-/* --- Pixelperfekte Zentrierung für ALLE Buttons (und file-labels) --- */
+// --- Pixelperfekte Zentrierung für ALLE Buttons (und file-labels) --- 
 button,
 label.file-label,
 .c-btn,
@@ -1093,7 +1093,7 @@ label.file-label,
 }
 
 #apply-view .video-wrap {
-    height: calc(100vh - 60px); /* genau wie andere fullscreen videos */
+    height: calc(100vh - 60px); // genau wie andere fullscreen videos 
 }
 
 #apply-prediction {
@@ -1106,7 +1106,7 @@ label.file-label,
   height: 100%;
   border: none;
   border-radius: 16px;
-  margin: 0;               /* Weiß oben entfernen */
+  margin: 0;               // Weiß oben entfernen 
   box-shadow: var(--md-sys-elevation-2);
 }
 
@@ -1530,7 +1530,7 @@ if (viewName === 'apply') {
 }
 }
 
-/* Gemeinsame Webcam für alle Video-Elemente */
+// Gemeinsame Webcam für alle Video-Elemente 
 let globalStream = null;
 
 async function initSharedCamera() {
@@ -1574,7 +1574,7 @@ async function init() {
   document.getElementById('tryout-status').textContent = 'Bereit zum Ausprobieren';
 }
 
-/* Show notification */
+// Show notification 
 function showNotification(message, duration = 3000) {
   const notification = document.getElementById('model-load-notification');
   notification.textContent = message;
@@ -1585,7 +1585,7 @@ function showNotification(message, duration = 3000) {
   }, duration);
 }
 
-/* Klassenverwaltung */
+// Klassenverwaltung 
 function addClass(name) {
   if (!name || classes.includes(name)) return;
   classes.push(name);
@@ -1664,7 +1664,7 @@ function renderThumbs() {
 }
 
 
-/* Model Details Dialog */
+// Model Details Dialog 
 function showModelDetails() {
   if (!classifierModel) {
     alert('Bitte zuerst ein Modell trainieren');
@@ -2048,7 +2048,7 @@ function confirmImport() {
   hideImportDialog();
 }
 
-/* Process zip file for image import */
+// Process zip file for image import 
 async function processZipFile(file) {
   try {
     const arrayBuffer = await file.arrayBuffer();
@@ -2120,7 +2120,7 @@ async function processZipFile(file) {
   }
 }
 
-/* Download class images */
+// Download class images 
 async function downloadClassImages(className) {
   const classExamples = examples[className] || [];
   if (classExamples.length === 0) {
@@ -2160,7 +2160,7 @@ async function downloadClassImages(className) {
   }
 }
 
-/* Download all class images */
+// Download all class images 
 async function downloadAllClassImages() {
   if (classes.length === 0) {
     alert('Keine Klassen zum Herunterladen');
@@ -2220,7 +2220,7 @@ async function downloadAllClassImages() {
   }
 }
 
-/* Download complete project */
+// Download complete project 
 async function downloadProject() {
   if (classes.length === 0) {
     alert('Keine Klassen zum Herunterladen');
@@ -2309,7 +2309,7 @@ async function downloadProject() {
   }
 }
 
-/* Import complete project */
+// Import complete project 
 async function importProject(file) {
   document.getElementById('model-info').textContent = 'Lade Projekt...';
   
@@ -2434,7 +2434,7 @@ async function importProject(file) {
   }
 }
 
-/* Aufnahme - nur wenn Taste gedrückt */
+// Aufnahme - nur wenn Taste gedrückt 
 function startCapture() {
   if (!activeClass) return alert('Klasse wählen');
   captureInterval = setInterval(captureFrame, captureRate);
@@ -2458,7 +2458,7 @@ function captureFrame() {
   renderThumbs();
 }
 
-/* Testen - toggle on/off */
+// Testen - toggle on/off 
 function toggleTest() {
   if (!classifierModel) {
     document.getElementById('test-status').textContent = 'Bitte zuerst ein Modell trainieren oder laden';
@@ -2515,9 +2515,7 @@ async function testModel() {
   input.dispose();
   emb.dispose();
 }
-
-/* Tryout - toggle on/off */
-/* Tryout - toggle on/off */
+// Tryout - toggle on/off 
 function toggleTryout() {
   if (!classifierModel) {
     document.getElementById('tryout-status').textContent = 'Bitte zuerst ein Modell laden';
@@ -2571,14 +2569,14 @@ async function tryoutModel() {
   // Gemeinsamer Text für beide Overlays
   const predictionText = `${classes[maxIndex]}: ${(maxProb * 100).toFixed(1)}%`;
   
-  // 1) Overlay im AUSPROBIEREN-View
+  // Overlay im AUSPROBIEREN-View
   const tryoutPred = document.getElementById('tryout-prediction');
   if (tryoutPred) {
     tryoutPred.textContent = predictionText;
     tryoutPred.style.display = 'block';
   }
 
-  // 2) Overlay im ANWENDEN-View (gleicher Text, gleiche Optik)
+  // Overlay im ANWENDEN-View (gleicher Text, gleiche Optik)
   const applyPred = document.getElementById('apply-prediction');
   if (applyPred) {
     applyPred.textContent = predictionText;
@@ -2770,7 +2768,7 @@ async function saveModel() {
   }
 }
 
-//Modell laden
+// Modell laden
 async function loadModel(file) {
   document.getElementById('model-info').textContent = 'Lade Modell...';
   
@@ -2859,7 +2857,7 @@ async function loadModel(file) {
   }
 }
 
-/* Tryout Modell laden */
+// Tryout Modell laden 
 async function loadTryoutModel(file) {
   document.getElementById('tryout-model-info').textContent = 'Lade Modell...';
   
@@ -2945,7 +2943,7 @@ async function loadTryoutModel(file) {
   }
 }
 
-/* Dataset vorbereiten */
+// Dataset vorbereiten 
 async function prepareDataset() {
   const xs = [];
   const ys = [];
@@ -2964,7 +2962,7 @@ async function prepareDataset() {
   return { xs: tf.stack(xs), ys: tf.stack(ys) };
 }
 
-/* Tab handling */
+// Tab handling 
 function setupTabs() {
   const tabs = document.querySelectorAll('.tab');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -2984,7 +2982,7 @@ function setupTabs() {
   });
 }
 
-/* Model Details Tab handling */
+// Model Details Tab handling 
 function setupModelDetailsTabs() {
   const tabs = document.querySelectorAll('.model-details-tab');
   const tabContents = document.querySelectorAll('.model-details-content');
@@ -3004,7 +3002,7 @@ function setupModelDetailsTabs() {
   });
 }
 
-/* Navigation setup */
+// Navigation setup 
 function setupNavigation() {
 
 document.querySelectorAll('.header-btn').forEach(btn => {
