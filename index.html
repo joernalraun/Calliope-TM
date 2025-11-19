@@ -373,55 +373,49 @@ button.primary-action:hover {
     color: rgb(var(--md-sys-color-on-surface-variant));
   }
   
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  position: absolute;
-  top: 6px;
-  left: 24px;
-  z-index: 5;
-}
-
-/* Nicht aktiv */
-.tab {
-  padding: 10px 22px;
-  cursor: pointer;
-  border-radius: 8px;
-  border: 2px solid #000000;      /* schwarzer Rahmen */
-  background: #ffffff;             /* weißer Hintergrund */
-  color: #000000;                  /* schwarzer Text */
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.15s ease-in-out;
-  user-select: none;
-}
-
-/* Hover – nicht aktiv */
-.tab:hover {
-  background: #f2f2f2;             /* leicht abgedunkeltes Weiß */
-}
-
-/* Aktiv */
-.tab.active {
-  background: #bbef53;             /* Primärfarbe */
-  border-color: #bbef53;
-  color: #000000;                  /* schwarzer Text */
-  font-weight: 600;
-}
-
-/* Hover (aktiv) */
-.tab.active:hover {
-  background: #d4f97c;             /* hellere Primärfarbe */
-}
-
-/* Klickzustand */
-.tab:active {
-  background: #94a2a6 !important;  /* Klickfarbe */
-  border-color: #94a2a6 !important;
-  color: #ffffff !important;       /* weißer Text beim Klick */
-}
-
+  .tabs {
+    display: flex;
+    gap: 8px;
+    position: absolute;
+    top: 6px; /* unterhalb des Headers */
+    left: 24px;
+    padding: 10px 20px;
+    text-align: center;
+    right: 0;
+    z-index: 5;
+    margin: 0 auto;
+    width: 100px;
+    max-width: 900px; /* optional: gleiche Breite wie dein Inhalt */
+  }
+  
+  .tab { 
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: var(--md-sys-shape-corner-small);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    transition: all 0.2s;
+    flex: 1;
+    text-align: center;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+  }
+  
+  .tab:hover {
+    background: rgba(var(--md-sys-color-primary), 0.08);
+  }
+  
+  .tab.active { 
+    background: rgb(var(--md-sys-color-secondary-container));
+    color: rgb(var(--md-sys-color-on-secondary-container));
+  }
+  
+  .tab-content { 
+    display: none; 
+  }
+  
+  .tab-content.active { 
+    display: block; 
+  }
   
   .prediction-result { 
     margin-top: 12px; 
@@ -1108,17 +1102,7 @@ label.file-label,
   box-shadow: var(--md-sys-elevation-2);
 }
 
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-
 </style>
-<script src="https://makecode.com/--embed.js"></script>
 </head>
 <body>
   <header id="main-header">
@@ -1299,8 +1283,9 @@ label.file-label,
 
   <!-- RECHTER BEREICH: EDITOR -->
   <div class="right-panel" id="makecode-editor-container" style="display:none;">
-    <iframe id="makecode-iframe"
-      src="https://makecode.calliope.cc/#editor"
+    <iframe
+      id="makecode-iframe"
+      src="https://makecode.calliope.cc"
       style="width:100%;height:100%;border:none;border-radius:16px;margin:0;">
     </iframe>
   </div>
@@ -1459,14 +1444,6 @@ let trainingHistory = {
   accuracy: [],
   loss: []
 };
-function sendClassesToMakeCode() {
-    if (!mcApp) return;
-
-    const code = `let klassen = [${classes.map(c => `"${c}"`).join(", ")}]`;
-
-    mcApp.writeCodeAsync(code)
-        .catch(err => console.error("MakeCode writeCodeAsync:", err));
-}
 
 // Bluetooth variables - updated to match working implementation
 const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
@@ -1488,57 +1465,34 @@ let accuracyChart = null;
 
 // View management
 function switchView(viewName) {
-    // Alle Videos stoppen, wenn View gewechselt wird
-    ["webcam", "webcam-test", "webcam-tryout"].forEach(id => {
-        const v = document.getElementById(id);
-        if (v) {
-            v.pause();
-            v.srcObject = null;
-        }
-    });
+  // Example: Activate view's main container
+  document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+  document.getElementById(viewName + '-view').style.display = 'flex';
 
-    // Alle Views verstecken
-    document.querySelectorAll('.view').forEach(v => {
-        v.style.display = 'none';
-    });
-
-    // Aktiven View anzeigen
-    document.getElementById(viewName + '-view').style.display = 'flex';
-
-    // Header-Navigation aktualisieren
-    document.querySelectorAll('.header-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('data-view') === viewName) {
-            btn.classList.add('active');
-        }
-    });
-
-    // MakeCode-Editor nur im Tryout-View anzeigen
-    let makecodeEditor = document.getElementById('makecode-editor-container');
-    if (makecodeEditor) {
-        makecodeEditor.style.display = (viewName === 'tryout') ? 'block' : 'none';
+  // Show editor ONLY in tryout view
+  let makecodeEditor = document.getElementById('makecode-editor-container');
+  if (makecodeEditor) {
+    makecodeEditor.style.display = (viewName === 'tryout') ? 'block' : 'none';
+  }
+  // Update navigation buttons
+  document.querySelectorAll('.nav-button').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.getAttribute('data-view') === viewName) {
+      btn.classList.add('active');
     }
-
-    // Nur im aktiven View den Stream setzen
-    if (viewName === "training") {
-        document.getElementById("webcam").srcObject = globalStream;
-        document.getElementById("webcam-test").srcObject = globalStream;
-    }
-
-    if (viewName === "tryout") {
-        document.getElementById("webcam-tryout").srcObject = globalStream;
-    }
-}
-// Navigation click events
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll('.header-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-          const view = btn.getAttribute('data-view');
-          switchView(view);
-      });
   });
-});
-
+  
+  // Show/hide views
+  document.querySelectorAll('.view').forEach(view => {
+    view.style.display = 'none';
+  });
+  document.getElementById(`${viewName}-view`).style.display = 'flex';
+  
+  // Initialize view-specific features
+  if (viewName === 'tryout') {
+  initSharedCamera();   // nutzt denselben Stream
+  }
+}
 
 /* Gemeinsame Webcam für alle Video-Elemente */
 let globalStream = null;
@@ -1603,14 +1557,6 @@ function addClass(name) {
   modelMetadata.classes.push(name);
   renderClassList();
   setActiveClass(name);
-}
-function sendClassesToMakeCode() {
-  if (!window.mcApp) return; // Editor noch nicht bereit
-
-  const code = `let klassen = [${classes.map(c => `"${c}"`).join(", ")}]`;
-
-  mcApp.writeCodeAsync(code)
-    .catch(err => console.error("MakeCode writeCodeAsync error:", err));
 }
 
 function renderClassList() {
@@ -1893,18 +1839,9 @@ async function calculateConfusionMatrix() {
       img.src = example.data;
       await new Promise(r => img.onload = r);
       
-      const input = tf.browser.fromPixels(img)
-        .toFloat()
-        .div(127.5)
-        .sub(1)
-        .resizeBilinear([224, 224])
-        .expandDims(0);
-
-      const prediction = await tf.tidy(() => {
-        const emb = mobilenetModel.infer(input, true);
-        const logits = classifierModel.predict(emb);
-        return logits.data();
-      });
+      const input = tf.browser.fromPixels(img).toFloat().div(127.5).sub(1).resizeBilinear([224,224]).expandDims(0);
+      const emb = mobilenetModel.infer(input, true);
+      const prediction = await classifierModel.predict(emb).data();
 
       // Find predicted class
       let maxProb = 0;
@@ -1915,7 +1852,6 @@ async function calculateConfusionMatrix() {
           predictedIndex = i;
         }
       }
-
       
       // Update confusion matrix
       confusionMatrix[classIndex][predictedIndex]++;
@@ -1928,6 +1864,7 @@ async function calculateConfusionMatrix() {
       
       // Clean up tensors
       input.dispose();
+      emb.dispose();
     }
   }
   
@@ -2517,17 +2454,9 @@ async function testModel() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   
-  const input = tf.browser.fromPixels(canvas)
-    .toFloat()
-    .div(127.5)
-    .sub(1)
-    .expandDims(0);
-
-  const prediction = await tf.tidy(() => {
-    const emb = mobilenetModel.infer(input, true);
-    const logits = classifierModel.predict(emb);
-    return logits.data();
-  });
+  const input = tf.browser.fromPixels(canvas).toFloat().div(127.5).sub(1).expandDims(0);
+  const emb = mobilenetModel.infer(input, true);
+  const prediction = await classifierModel.predict(emb).data();
   
   // Find the class with highest probability
   let maxProb = 0;
@@ -2548,8 +2477,8 @@ async function testModel() {
   
   // Clean up tensors
   input.dispose();
+  emb.dispose();
 }
-
 
 /* Tryout - toggle on/off */
 function toggleTryout() {
@@ -2583,17 +2512,9 @@ async function tryoutModel() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   
-  const input = tf.browser.fromPixels(canvas)
-    .toFloat()
-    .div(127.5)
-    .sub(1)
-    .expandDims(0);
-
-  const prediction = await tf.tidy(() => {
-    const emb = mobilenetModel.infer(input, true);
-    const logits = classifierModel.predict(emb);
-    return logits.data();
-  });
+  const input = tf.browser.fromPixels(canvas).toFloat().div(127.5).sub(1).expandDims(0);
+  const emb = mobilenetModel.infer(input, true);
+  const prediction = await classifierModel.predict(emb).data();
   
   // Find the class with highest probability
   let maxProb = 0;
@@ -2610,10 +2531,24 @@ async function tryoutModel() {
   document.getElementById('tryout-prediction').textContent = predictionText;
   document.getElementById('tryout-prediction').style.display = 'block';
   
-  // Clean up tensors
-  input.dispose();
+  // An Calliope mini über Bluetooth senden, wenn verbunden und die Zuverlässigkeit hoch genug ist.
+  // Optimiertes Bluetooth-Senden (nur beste Klasse, stabil, gedrosselt)
+
+if (rxCharacteristic) {
+    // Klasse mit höchster Wahrscheinlichkeit ist bereits ermittelt
+
+    // Nur wenn Wahrscheinlichkeit ausreichend hoch
+    if (maxProb > 0.75) {
+        const className = classes[maxIndex];
+        sendClassIfChanged(className, maxProb);
+    }
 }
 
+  
+  // Tensors bereinigen
+  input.dispose();
+  emb.dispose();
+}
 
 // Bluetooth-Funktionen – aktualisiert, um der funktionierenden Implementierung zu entsprechen 
 async function connectButtonPressed() {
@@ -3079,7 +3014,6 @@ document.querySelector('.header-btn[data-view="training"]')
     if (!name) return;
     addClass(name);
     document.getElementById('new-class-name').value = '';
-    sendClassesToMakeCode(); 
   };
   document.getElementById('active-class').onchange = e => setActiveClass(e.target.value);
   
@@ -3165,7 +3099,6 @@ document.querySelector('.header-btn[data-view="training"]')
       
       data.xs.dispose(); 
       data.ys.dispose();
-      sendClassesToMakeCode();
       status.textContent = 'Fertig';
       status.style.color = '#4CAF50';
       document.getElementById('test-status').textContent = 'Modell bereit zum Testen';
@@ -3217,7 +3150,6 @@ document.querySelector('.header-btn[data-view="training"]')
       importProject(e.target.files[0]);
       e.target.value = ''; // Reset input so same file can be loaded again
     }
-    sendClassesToMakeCode();
   });
   
   // Import dialog buttons
@@ -3229,22 +3161,6 @@ document.querySelector('.header-btn[data-view="training"]')
   document.getElementById('disconnect-bluetooth').onclick = disconnectButtonPressed;
   
 init();
-});
-</script>
-<script>
-let mcApp = null;
-
-window.addEventListener("load", () => {
-    const iframe = document.getElementById("makecode-iframe");
-    if (!iframe) {
-        console.error("MakeCode iframe nicht gefunden!");
-        return;
-    }
-    mcApp = makecodeEmbed.makeCodeEmbedApp({
-        target: "calliope",
-        iframe: iframe,
-        autoRun: true
-    });
 });
 </script>
 
