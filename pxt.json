@@ -3,6 +3,7 @@
   "description": "Generated from Teachable Machine",
   "dependencies": {
     "core": "*",
+    "v3": "*",
     "bluetooth": "*",
     "LofiRobot": "github:calliope-edu/lofirobot"
   },

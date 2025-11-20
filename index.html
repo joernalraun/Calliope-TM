@@ -1504,9 +1504,7 @@ function switchView(viewName) {
   });
   document.getElementById(`${viewName}-view`).style.display = 'flex';
   if (viewName === "tryout") {
-    setTimeout(() => {
-        sendClassesToMakeCode();
-    }, 800); // kurze Verzögerung für sicher geladenen Editor
+    sendClassesToMakeCode();
   }
   // Initialize view-specific features
   // Initialize view-specific features
@@ -1663,46 +1661,44 @@ function renderThumbs() {
 
 function sendClassesToMakeCode() {
     const iframe = document.getElementById("calliope-editor");
+
     if (!iframe) return;
+
+    if (!makeCodeIsReady) {
+        console.warn("MakeCode nicht bereit – warte…");
+        return;
+    }
 
     const editorWindow = iframe.contentWindow;
 
-    // 1. Klassennamen in TS-Code gießen
     const tsClassList = classes.map(c => `"${c}"`).join(", ");
 
     const mainTS = `
 let classes = [${tsClassList}]
 
 basic.showString("READY")
-`;
+`.trim();
 
-    // 2. MakeCode-Projekt konstruieren (Minimalprojekt)
     const project = {
         text: {
-            "main.ts": mainTS.trim(),
+            "main.ts": mainTS,
             "pxt.json": JSON.stringify({
                 name: "tm-project",
-                dependencies: { core: "*" },
+                dependencies: { core: "*", bluetooth: "*" },
                 files: ["main.ts"]
-            }),
-            "README.md": "automatically generated"
+            })
         }
     };
 
-    // 3. MakeCode per postMessage ansprechen
-    const message = {
+    editorWindow.postMessage({
         type: "pxteditor",
         action: "importproject",
-        project: project,
-        response: false
-            /* text: {
-            "main.ts": "...",
-            "pxt.json": "{...}"
-        } */
-    };
+        project: project
+    }, "*");
 
-    editorWindow.postMessage(message, "*");
+    console.log("Projekt an MakeCode gesendet ✓");
 }
+
 
 // Model Details Dialog 
 function showModelDetails() {
@@ -2581,6 +2577,22 @@ function toggleTryout() {
   }
 }
 
+let makeCodeIsReady = false;
+
+window.addEventListener("message", (event) => {
+    const msg = event.data;
+
+    if (msg.type === "pxteditor" && msg.action === "editorloaded") {
+        console.log("MakeCode Editor ist bereit ✓");
+        makeCodeIsReady = true;
+
+        // Wenn der Benutzer gerade den Tryout-View geöffnet hat:
+        if (document.getElementById("tryout-view").style.display !== "none") {
+            sendClassesToMakeCode();
+        }
+    }
+});
+
 
 async function tryoutModel() {
   if (!classifierModel) return;
@@ -2804,11 +2816,12 @@ function handleClass(name: string) {
                 name: "tm-bt-project",
                 dependencies: {
                     core: "*",
-                    bluetooth: "*"
+                    bluetooth: "*",
+                    v3: "*",
+                    LofiRobot: "github:calliope-edu/lofirobot"
                 },
                 files: ["main.ts"]
             }),
-            "README.md": "Automatically generated"
         }
     };
 
