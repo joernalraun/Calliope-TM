@@ -1435,6 +1435,181 @@ video {
   align-items: center;
   gap: 8px;
 }
+
+/* ==== GROVE AI PANEL ==== */
+.grove-ai-section {
+  border: 1px solid rgb(var(--md-sys-color-outline-variant));
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding: 12px;
+  margin-top: 12px;
+  background: rgb(var(--md-sys-color-surface-variant), 0.15);
+}
+
+.grove-ai-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.grove-ai-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: rgb(var(--md-sys-color-secondary));
+  cursor: pointer;
+}
+
+.grove-ai-toggle label {
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0;
+  color: rgb(var(--md-sys-color-on-surface));
+}
+
+.grove-ai-content {
+  display: none;
+  margin-top: 12px;
+}
+
+.grove-ai-content.visible {
+  display: block;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.grove-ai-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.grove-ai-status .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgb(var(--md-sys-color-error));
+  transition: background 0.3s;
+}
+
+.grove-ai-status .status-dot.connected {
+  background: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+.grove-ai-device-info {
+  font-size: 12px;
+  color: rgb(var(--md-sys-color-on-surface-variant));
+  margin-top: 4px;
+}
+
+.grove-ai-models {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.grove-ai-model-card {
+  padding: 8px 10px;
+  border: 2px solid rgb(var(--md-sys-color-outline-variant));
+  border-radius: var(--md-sys-shape-corner-small);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.grove-ai-model-card:hover {
+  border-color: rgb(var(--md-sys-color-secondary));
+  background: rgba(var(--md-sys-color-secondary), 0.08);
+}
+
+.grove-ai-model-card.selected {
+  border-color: rgb(var(--md-sys-color-secondary));
+  background: rgba(var(--md-sys-color-secondary), 0.15);
+}
+
+.grove-ai-model-card .model-name {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.grove-ai-model-card .model-detail {
+  color: rgb(var(--md-sys-color-on-surface-variant));
+  font-size: 11px;
+}
+
+.grove-ai-sliders label {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.grove-ai-sliders input[type="range"] {
+  width: 100%;
+  margin: 4px 0 8px 0;
+  accent-color: rgb(var(--md-sys-color-secondary));
+}
+
+.grove-ai-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grove-ai-slider-value {
+  min-width: 35px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.grove-ai-inference-info {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 8px 12px;
+  border-radius: var(--md-sys-shape-corner-small);
+  font-size: 13px;
+  max-width: 300px;
+  z-index: 3;
+}
+
+/* Grove AI Flash / Progress */
+.grove-ai-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgb(var(--md-sys-color-outline-variant));
+  border-radius: 4px;
+  overflow: hidden;
+}
+.grove-ai-progress-fill {
+  height: 100%;
+  background: rgb(var(--md-sys-color-secondary));
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+.grove-ai-text-input {
+  width: 100%;
+  padding: 6px 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  border: 1px solid rgb(var(--md-sys-color-outline-variant));
+  border-radius: var(--md-sys-shape-corner-small);
+  font-size: 13px;
+  font-family: inherit;
+  background: rgb(var(--md-sys-color-surface));
+  color: rgb(var(--md-sys-color-on-surface));
+}
+.grove-ai-text-input:focus {
+  outline: 2px solid rgb(var(--md-sys-color-secondary));
+  outline-offset: -1px;
+}
 </style>
 </head>
 <body>
@@ -1663,6 +1838,85 @@ video {
           <input id="import-project" type="file" accept=".zip" style="display:none">
         </label>
       </div>
+
+      <!-- Grove AI Hardware Mode -->
+      <hr style="margin:12px 0;">
+      <div class="grove-ai-section">
+        <div class="grove-ai-toggle">
+          <input type="checkbox" id="grove-ai-enabled">
+          <label for="grove-ai-enabled" data-i18n="groveAI.enableLabel">Grove AI</label>
+        </div>
+
+        <div id="grove-ai-content" class="grove-ai-content">
+          <div class="grove-ai-status">
+            <div id="grove-ai-status-dot" class="status-dot"></div>
+            <span id="grove-ai-status-text" data-i18n="groveAI.notConnected">Nicht verbunden</span>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <button id="grove-ai-connect" class="ghost" data-i18n="groveAI.connect">Verbinden</button>
+            <button id="grove-ai-disconnect" class="ghost" style="display:none;" data-i18n="groveAI.disconnect">Trennen</button>
+          </div>
+
+          <div id="grove-ai-device-info" class="grove-ai-device-info" style="display:none;">
+            <div><strong data-i18n="groveAI.deviceName">Gerät:</strong> <span id="grove-ai-name">-</span></div>
+            <div><strong data-i18n="groveAI.version">Version:</strong> <span id="grove-ai-version">-</span></div>
+          </div>
+
+          <div id="grove-ai-model-section" style="display:none;margin-top:10px;">
+            <label data-i18n="groveAI.selectModel">Modell auswählen:</label>
+            <div id="grove-ai-models" class="grove-ai-models"></div>
+            <button id="grove-ai-send-model" style="margin-top:8px;width:100%;" data-i18n="groveAI.sendModel">Modell auf Gerät laden</button>
+          </div>
+
+          <div id="grove-ai-flash-section" style="display:none;margin-top:12px;">
+            <label style="font-weight:600;" data-i18n="groveAI.flashCustomModel">Eigenes Modell flashen</label>
+
+            <div style="margin-top:8px;">
+              <label style="font-size:13px;" data-i18n="groveAI.uploadTflite">.tflite Datei hochladen:</label>
+              <input type="file" id="grove-ai-tflite-file" accept=".tflite,.lite" style="width:100%;margin-top:4px;font-size:12px;">
+            </div>
+
+            <button id="grove-ai-convert-model" class="ghost" style="margin-top:8px;width:100%;display:none;"
+              data-i18n="groveAI.convertModel">Aktuelles Modell zu TFLite konvertieren</button>
+
+            <div id="grove-ai-flash-meta" style="display:none;margin-top:8px;">
+              <label style="font-size:13px;" data-i18n="groveAI.modelName">Modellname:</label>
+              <input type="text" id="grove-ai-model-name" class="grove-ai-text-input" placeholder="My Model">
+              <label style="font-size:13px;" data-i18n="groveAI.classLabels">Klassen (kommagetrennt):</label>
+              <input type="text" id="grove-ai-class-labels" class="grove-ai-text-input" placeholder="cat, dog, bird">
+            </div>
+
+            <button id="grove-ai-flash-btn" style="display:none;margin-top:8px;width:100%;"
+              data-i18n="groveAI.flashToDevice">Auf Gerät flashen</button>
+
+            <div id="grove-ai-flash-progress" style="display:none;margin-top:8px;">
+              <div class="grove-ai-progress-bar">
+                <div id="grove-ai-progress-fill" class="grove-ai-progress-fill"></div>
+              </div>
+              <span id="grove-ai-flash-status" style="font-size:12px;margin-top:4px;display:block;"></span>
+            </div>
+          </div>
+
+          <div id="grove-ai-thresholds" class="grove-ai-sliders" style="display:none;">
+            <label data-i18n="groveAI.confidenceThreshold">Konfidenz-Schwellenwert:</label>
+            <div class="grove-ai-slider-row">
+              <input type="range" id="grove-ai-score" min="0" max="100" value="50">
+              <span id="grove-ai-score-value" class="grove-ai-slider-value">50%</span>
+            </div>
+            <label data-i18n="groveAI.iouThreshold">IoU-Schwellenwert:</label>
+            <div class="grove-ai-slider-row">
+              <input type="range" id="grove-ai-iou" min="0" max="100" value="45">
+              <span id="grove-ai-iou-value" class="grove-ai-slider-value">45%</span>
+            </div>
+          </div>
+
+          <div id="grove-ai-invoke-section" style="display:none;margin-top:10px;">
+            <button id="grove-ai-invoke" data-i18n="groveAI.startInference">Inferenz starten</button>
+            <button id="grove-ai-stop" style="display:none;" data-i18n="groveAI.stopInference">Inferenz stoppen</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- RIGHT -->
@@ -1673,6 +1927,7 @@ video {
       <div id="train-tab" class="tab-content active">
         <div class="video-wrap">
           <video id="webcam" autoplay playsinline></video>
+          <canvas id="grove-ai-canvas-train" style="display:none;width:100%;height:100%;object-fit:contain;"></canvas>
           <div class="overlay">
             <div id="status" class="status dark" data-i18n="training.status">Lädt…</div>
           </div>
@@ -1716,7 +1971,9 @@ video {
 
     <div class="video-wrap">
       <video id="webcam-apply" autoplay playsinline></video>
+      <canvas id="grove-ai-canvas-apply" style="display:none;width:100%;height:100%;object-fit:contain;"></canvas>
       <div id="apply-prediction" class="prediction-display" style="display: none;"></div>
+      <div id="grove-ai-inference-info" class="grove-ai-inference-info" style="display:none;"></div>
     </div>
 
   </div>
@@ -2116,6 +2373,50 @@ const translations = {
       ],
       section7Title: 'Weitere Informationen',
       section7Text: 'Falls du Fragen zu diesem Tool haben, kannst du dich natürlich gern bei uns melden. <br>• Am einfachsten geht das per Mail: info@calliope.cc <br>• Dieses Tool folgt den Transparenzanforderungen der EU-KI-Verordnung (EU) 2024/1689. Du hast jederzeit die Kontrolle über deine Daten und Modelle. Bei Fragen zur Funktionsweise kannst du die "Modell Details" nach dem Training einsehen – dort findest du technische Informationen über die Leistung deines Modells.'
+    },
+    groveAI: {
+      enableLabel: 'Grove AI',
+      notConnected: 'Nicht verbunden',
+      connected: 'Verbunden',
+      connect: 'Verbinden',
+      disconnect: 'Trennen',
+      disconnected: 'Verbindung getrennt',
+      deviceName: 'Gerät:',
+      version: 'Version:',
+      selectModel: 'Modell auswählen:',
+      sendModel: 'Modell auf Gerät laden',
+      confidenceThreshold: 'Konfidenz-Schwellenwert:',
+      iouThreshold: 'IoU-Schwellenwert:',
+      startInference: 'Inferenz starten',
+      stopInference: 'Inferenz stoppen',
+      connecting: 'Verbinde...',
+      connectionFailed: 'Verbindung fehlgeschlagen',
+      loadingModels: 'Lade Modelle...',
+      modelLoaded: 'Modell erfolgreich geladen',
+      modelLoadFailed: 'Modell konnte nicht geladen werden',
+      noSerialSupport: 'Web Serial API wird in diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.',
+      inferenceRunning: 'Inferenz läuft',
+      inferenceStopped: 'Inferenz gestoppt',
+      noModelsAvailable: 'Keine Modelle verfügbar',
+      hardwareModeActive: 'Hardware-Modus aktiv - Gerätekamera wird verwendet',
+      hardwareModeHint: 'Wenn Grove AI aktiviert ist, werden die Gerätekamera und vortrainierte Modelle anstelle der Webcam verwendet.',
+      objectsDetected: 'Objekt(e) erkannt',
+      flashCustomModel: 'Eigenes Modell flashen',
+      uploadTflite: '.tflite Datei hochladen:',
+      convertModel: 'Aktuelles Modell zu TFLite konvertieren',
+      modelName: 'Modellname:',
+      classLabels: 'Klassen (kommagetrennt):',
+      flashToDevice: 'Auf Gerät flashen',
+      flashProgress: 'Fortschritt:',
+      flashComplete: 'Modell erfolgreich geflasht!',
+      flashFailed: 'Flashen fehlgeschlagen:',
+      flashingModel: 'Flashe Modell...',
+      enteringBootloader: 'Bootloader wird gestartet...',
+      convertingModel: 'Modell wird konvertiert...',
+      conversionFailed: 'Konvertierung fehlgeschlagen:',
+      conversionServerHint: 'Bitte starten Sie den Konvertierungsserver (python conversion_server.py)',
+      noModelTrained: 'Kein trainiertes Modell vorhanden',
+      flashNoteClassifier: 'Hinweis: Das konvertierte Modell ist ein Klassifizierer, kein YOLO-Detektor.'
     }
   },
   en: {
@@ -2272,6 +2573,50 @@ const translations = {
       ],
       section7Title: 'Further information',
       section7Text: 'This tool follows the transparency requirements of the EU AI Regulation (EU) 2024/1689. You always have control over your data and models. If you have questions about how it works, you can view the "Model Details" after training – there you will find technical information about your model\'s performance.'
+    },
+    groveAI: {
+      enableLabel: 'Grove AI',
+      notConnected: 'Not connected',
+      connected: 'Connected',
+      connect: 'Connect',
+      disconnect: 'Disconnect',
+      disconnected: 'Disconnected',
+      deviceName: 'Device:',
+      version: 'Version:',
+      selectModel: 'Select Model:',
+      sendModel: 'Load Model to Device',
+      confidenceThreshold: 'Confidence Threshold:',
+      iouThreshold: 'IoU Threshold:',
+      startInference: 'Start Inference',
+      stopInference: 'Stop Inference',
+      connecting: 'Connecting...',
+      connectionFailed: 'Connection failed',
+      loadingModels: 'Loading models...',
+      modelLoaded: 'Model loaded successfully',
+      modelLoadFailed: 'Failed to load model',
+      noSerialSupport: 'Web Serial API is not supported in this browser. Please use Chrome or Edge.',
+      inferenceRunning: 'Inference running',
+      inferenceStopped: 'Inference stopped',
+      noModelsAvailable: 'No models available',
+      hardwareModeActive: 'Hardware mode active - using device camera',
+      hardwareModeHint: 'When Grove AI is enabled, the device camera and pre-trained models are used instead of the webcam.',
+      objectsDetected: 'object(s) detected',
+      flashCustomModel: 'Flash Custom Model',
+      uploadTflite: 'Upload .tflite file:',
+      convertModel: 'Convert Current Model to TFLite',
+      modelName: 'Model Name:',
+      classLabels: 'Class Labels (comma-separated):',
+      flashToDevice: 'Flash to Device',
+      flashProgress: 'Progress:',
+      flashComplete: 'Model flashed successfully!',
+      flashFailed: 'Flashing failed:',
+      flashingModel: 'Flashing model...',
+      enteringBootloader: 'Entering bootloader...',
+      convertingModel: 'Converting model...',
+      conversionFailed: 'Conversion failed:',
+      conversionServerHint: 'Please start the conversion server (python conversion_server.py)',
+      noModelTrained: 'No trained model available',
+      flashNoteClassifier: 'Note: The converted model is a classifier, not a YOLO detector.'
     }
   },
   fr: {
@@ -2428,6 +2773,50 @@ const translations = {
       ],
       section7Title: 'Informations complémentaires',
       section7Text: 'Cet outil suit les exigences de transparence du règlement européen sur l\'IA (UE) 2024/1689. Vous avez toujours le contrôle sur vos données et modèles. Si vous avez des questions sur son fonctionnement, vous pouvez consulter les "Détails du modèle" après l\'entraînement – vous y trouverez des informations techniques sur les performances de votre modèle.'
+    },
+    groveAI: {
+      enableLabel: 'Grove AI',
+      notConnected: 'Non connecté',
+      connected: 'Connecté',
+      connect: 'Connecter',
+      disconnect: 'Déconnecter',
+      disconnected: 'Déconnecté',
+      deviceName: 'Appareil:',
+      version: 'Version:',
+      selectModel: 'Sélectionner le modèle:',
+      sendModel: 'Charger le modèle sur l\'appareil',
+      confidenceThreshold: 'Seuil de confiance:',
+      iouThreshold: 'Seuil IoU:',
+      startInference: 'Démarrer l\'inférence',
+      stopInference: 'Arrêter l\'inférence',
+      connecting: 'Connexion...',
+      connectionFailed: 'Échec de la connexion',
+      loadingModels: 'Chargement des modèles...',
+      modelLoaded: 'Modèle chargé avec succès',
+      modelLoadFailed: 'Échec du chargement du modèle',
+      noSerialSupport: 'L\'API Web Serial n\'est pas supportée dans ce navigateur. Veuillez utiliser Chrome ou Edge.',
+      inferenceRunning: 'Inférence en cours',
+      inferenceStopped: 'Inférence arrêtée',
+      noModelsAvailable: 'Aucun modèle disponible',
+      hardwareModeActive: 'Mode matériel actif - caméra de l\'appareil utilisée',
+      hardwareModeHint: 'Lorsque Grove AI est activé, la caméra de l\'appareil et les modèles pré-entraînés sont utilisés à la place de la webcam.',
+      objectsDetected: 'objet(s) détecté(s)',
+      flashCustomModel: 'Flasher un modèle personnalisé',
+      uploadTflite: 'Télécharger un fichier .tflite :',
+      convertModel: 'Convertir le modèle actuel en TFLite',
+      modelName: 'Nom du modèle :',
+      classLabels: 'Étiquettes de classe (séparées par des virgules) :',
+      flashToDevice: 'Flasher sur l\'appareil',
+      flashProgress: 'Progression :',
+      flashComplete: 'Modèle flashé avec succès !',
+      flashFailed: 'Échec du flashage :',
+      flashingModel: 'Flashage du modèle...',
+      enteringBootloader: 'Démarrage du bootloader...',
+      convertingModel: 'Conversion du modèle...',
+      conversionFailed: 'Échec de la conversion :',
+      conversionServerHint: 'Veuillez démarrer le serveur de conversion (python conversion_server.py)',
+      noModelTrained: 'Aucun modèle entraîné disponible',
+      flashNoteClassifier: 'Note : Le modèle converti est un classificateur, pas un détecteur YOLO.'
     }
   },
   es: {
@@ -2584,6 +2973,50 @@ const translations = {
       ],
       section7Title: 'Más información',
       section7Text: 'Esta herramienta sigue los requisitos de transparencia del Reglamento de IA de la UE (UE) 2024/1689. Siempre tienes el control sobre tus datos y modelos. Si tienes preguntas sobre cómo funciona, puedes ver los "Detalles del modelo" después del entrenamiento: allí encontrarás información técnica sobre el rendimiento de tu modelo.'
+    },
+    groveAI: {
+      enableLabel: 'Grove AI',
+      notConnected: 'No conectado',
+      connected: 'Conectado',
+      connect: 'Conectar',
+      disconnect: 'Desconectar',
+      disconnected: 'Desconectado',
+      deviceName: 'Dispositivo:',
+      version: 'Versión:',
+      selectModel: 'Seleccionar modelo:',
+      sendModel: 'Cargar modelo en dispositivo',
+      confidenceThreshold: 'Umbral de confianza:',
+      iouThreshold: 'Umbral IoU:',
+      startInference: 'Iniciar inferencia',
+      stopInference: 'Detener inferencia',
+      connecting: 'Conectando...',
+      connectionFailed: 'Conexión fallida',
+      loadingModels: 'Cargando modelos...',
+      modelLoaded: 'Modelo cargado exitosamente',
+      modelLoadFailed: 'Error al cargar el modelo',
+      noSerialSupport: 'La API Web Serial no es compatible con este navegador. Por favor usa Chrome o Edge.',
+      inferenceRunning: 'Inferencia en ejecución',
+      inferenceStopped: 'Inferencia detenida',
+      noModelsAvailable: 'No hay modelos disponibles',
+      hardwareModeActive: 'Modo hardware activo - usando cámara del dispositivo',
+      hardwareModeHint: 'Cuando Grove AI está activado, se usa la cámara del dispositivo y los modelos pre-entrenados en lugar de la webcam.',
+      objectsDetected: 'objeto(s) detectado(s)',
+      flashCustomModel: 'Flashear modelo personalizado',
+      uploadTflite: 'Subir archivo .tflite:',
+      convertModel: 'Convertir modelo actual a TFLite',
+      modelName: 'Nombre del modelo:',
+      classLabels: 'Etiquetas de clase (separadas por comas):',
+      flashToDevice: 'Flashear en dispositivo',
+      flashProgress: 'Progreso:',
+      flashComplete: '¡Modelo flasheado exitosamente!',
+      flashFailed: 'Error al flashear:',
+      flashingModel: 'Flasheando modelo...',
+      enteringBootloader: 'Iniciando bootloader...',
+      convertingModel: 'Convirtiendo modelo...',
+      conversionFailed: 'Error en la conversión:',
+      conversionServerHint: 'Por favor inicie el servidor de conversión (python conversion_server.py)',
+      noModelTrained: 'No hay modelo entrenado disponible',
+      flashNoteClassifier: 'Nota: El modelo convertido es un clasificador, no un detector YOLO.'
     }
   },
   it: {
@@ -2740,6 +3173,50 @@ const translations = {
       ],
       section7Title: 'Ulteriori informazioni',
       section7Text: 'Questo strumento segue i requisiti di trasparenza del Regolamento UE sull\'IA (UE) 2024/1689. Hai sempre il controllo sui tuoi dati e modelli. Se hai domande su come funziona, puoi visualizzare i "Dettagli del modello" dopo l\'addestramento: lì troverai informazioni tecniche sulle prestazioni del tuo modello.'
+    },
+    groveAI: {
+      enableLabel: 'Grove AI',
+      notConnected: 'Non connesso',
+      connected: 'Connesso',
+      connect: 'Connetti',
+      disconnect: 'Disconnetti',
+      disconnected: 'Disconnesso',
+      deviceName: 'Dispositivo:',
+      version: 'Versione:',
+      selectModel: 'Seleziona modello:',
+      sendModel: 'Carica modello sul dispositivo',
+      confidenceThreshold: 'Soglia di confidenza:',
+      iouThreshold: 'Soglia IoU:',
+      startInference: 'Avvia inferenza',
+      stopInference: 'Ferma inferenza',
+      connecting: 'Connessione...',
+      connectionFailed: 'Connessione fallita',
+      loadingModels: 'Caricamento modelli...',
+      modelLoaded: 'Modello caricato con successo',
+      modelLoadFailed: 'Caricamento modello fallito',
+      noSerialSupport: 'L\'API Web Serial non è supportata in questo browser. Utilizzare Chrome o Edge.',
+      inferenceRunning: 'Inferenza in corso',
+      inferenceStopped: 'Inferenza fermata',
+      noModelsAvailable: 'Nessun modello disponibile',
+      hardwareModeActive: 'Modalità hardware attiva - fotocamera del dispositivo in uso',
+      hardwareModeHint: 'Quando Grove AI è attivato, vengono utilizzati la fotocamera del dispositivo e i modelli pre-addestrati al posto della webcam.',
+      objectsDetected: 'oggetto/i rilevato/i',
+      flashCustomModel: 'Flash modello personalizzato',
+      uploadTflite: 'Carica file .tflite:',
+      convertModel: 'Converti modello attuale in TFLite',
+      modelName: 'Nome del modello:',
+      classLabels: 'Etichette classi (separate da virgola):',
+      flashToDevice: 'Flash sul dispositivo',
+      flashProgress: 'Progresso:',
+      flashComplete: 'Modello flashato con successo!',
+      flashFailed: 'Flash fallito:',
+      flashingModel: 'Flash del modello in corso...',
+      enteringBootloader: 'Avvio bootloader...',
+      convertingModel: 'Conversione del modello...',
+      conversionFailed: 'Conversione fallita:',
+      conversionServerHint: 'Avviare il server di conversione (python conversion_server.py)',
+      noModelTrained: 'Nessun modello addestrato disponibile',
+      flashNoteClassifier: 'Nota: Il modello convertito è un classificatore, non un rilevatore YOLO.'
     }
   },
   el: {
@@ -2896,6 +3373,50 @@ const translations = {
       ],
       section7Title: 'Περισσότερες πληροφορίες',
       section7Text: 'Αυτό το εργαλείο ακολουθεί τις απαιτήσεις διαφάνειας του Κανονισμού της ΕΕ για την AI (EU) 2024/1689. Έχετε πάντα τον έλεγχο των δεδομένων και των μοντέλων σας. Εάν έχετε ερωτήσεις σχετικά με τον τρόπο λειτουργίας, μπορείτε να δείτε τις "Λεπτομέρειες μοντέλου" μετά την εκπαίδευση - εκεί θα βρείτε τεχνικές πληροφορίες σχετικά με την απόδοση του μοντέλου σας.'
+    },
+    groveAI: {
+      enableLabel: 'Grove AI',
+      notConnected: 'Μη συνδεδεμένο',
+      connected: 'Συνδεδεμένο',
+      connect: 'Σύνδεση',
+      disconnect: 'Αποσύνδεση',
+      disconnected: 'Αποσυνδέθηκε',
+      deviceName: 'Συσκευή:',
+      version: 'Έκδοση:',
+      selectModel: 'Επιλογή μοντέλου:',
+      sendModel: 'Φόρτωση μοντέλου στη συσκευή',
+      confidenceThreshold: 'Κατώφλι εμπιστοσύνης:',
+      iouThreshold: 'Κατώφλι IoU:',
+      startInference: 'Έναρξη εξαγωγής συμπερασμάτων',
+      stopInference: 'Διακοπή εξαγωγής συμπερασμάτων',
+      connecting: 'Σύνδεση...',
+      connectionFailed: 'Η σύνδεση απέτυχε',
+      loadingModels: 'Φόρτωση μοντέλων...',
+      modelLoaded: 'Το μοντέλο φορτώθηκε επιτυχώς',
+      modelLoadFailed: 'Αποτυχία φόρτωσης μοντέλου',
+      noSerialSupport: 'Το Web Serial API δεν υποστηρίζεται σε αυτό το πρόγραμμα περιήγησης. Χρησιμοποιήστε Chrome ή Edge.',
+      inferenceRunning: 'Εξαγωγή συμπερασμάτων σε εξέλιξη',
+      inferenceStopped: 'Η εξαγωγή συμπερασμάτων σταμάτησε',
+      noModelsAvailable: 'Δεν υπάρχουν διαθέσιμα μοντέλα',
+      hardwareModeActive: 'Λειτουργία υλικού ενεργή - χρήση κάμερας συσκευής',
+      hardwareModeHint: 'Όταν το Grove AI είναι ενεργοποιημένο, χρησιμοποιούνται η κάμερα της συσκευής και τα προεκπαιδευμένα μοντέλα αντί της webcam.',
+      objectsDetected: 'αντικείμενο/α εντοπίστηκε/αν',
+      flashCustomModel: 'Φόρτωση προσαρμοσμένου μοντέλου',
+      uploadTflite: 'Ανέβασμα αρχείου .tflite:',
+      convertModel: 'Μετατροπή τρέχοντος μοντέλου σε TFLite',
+      modelName: 'Όνομα μοντέλου:',
+      classLabels: 'Ετικέτες κλάσεων (χωρισμένες με κόμμα):',
+      flashToDevice: 'Φόρτωση στη συσκευή',
+      flashProgress: 'Πρόοδος:',
+      flashComplete: 'Το μοντέλο φορτώθηκε επιτυχώς!',
+      flashFailed: 'Η φόρτωση απέτυχε:',
+      flashingModel: 'Φόρτωση μοντέλου...',
+      enteringBootloader: 'Εκκίνηση bootloader...',
+      convertingModel: 'Μετατροπή μοντέλου...',
+      conversionFailed: 'Η μετατροπή απέτυχε:',
+      conversionServerHint: 'Παρακαλώ εκκινήστε τον διακομιστή μετατροπής (python conversion_server.py)',
+      noModelTrained: 'Δεν υπάρχει εκπαιδευμένο μοντέλο',
+      flashNoteClassifier: 'Σημείωση: Το μετατρεπόμενο μοντέλο είναι ταξινομητής, όχι ανιχνευτής YOLO.'
     }
   }
 };
@@ -2967,6 +3488,1252 @@ let isFirstPrediction = true;
 // Chart instances
 let accuracyLossChart = null;
 let accuracyChart = null;
+
+// ===== GROVE AI: State Variables =====
+let groveAIDevice = null;
+let groveAIEnabled = false;
+let groveAIModels = [];
+let groveAISelectedModelIndex = -1;
+const GROVE_AI_MODELS_URL = 'https://files.seeedstudio.com/sscma/sscma-model-we2.json';
+const GROVE_AI_FILTER = { usbVendorId: 0x1a86, usbProductId: 0x55d3 };
+const GROVE_COLORS = [
+  '#FF0000','#FFA500','#FFFF00','#32CD32','#006400',
+  '#4169E1','#0000FF','#FF1493','#FFC0CB','#800080'
+];
+// Reusable Image object for inference frames (avoid GC overhead)
+const groveAIFrameImg = new Image();
+let groveAITfliteData = null;     // Uint8Array of .tflite to flash
+let groveAIFlashing = false;
+const GROVE_AI_CONVERSION_URL = 'http://localhost:5000/convert';
+const GROVE_AI_MODEL_FLASH_ADDR = 0x400000;
+
+// ===== GROVE AI: Ring Buffer (ported from SenseCraft ringBuffer.ts) =====
+class GroveRingBuffer {
+  constructor(size) {
+    this.buffer = new Uint8Array(size);
+    this.readIndex = 0;
+    this.writeIndex = 0;
+  }
+
+  write(data) {
+    for (let i = 0; i < data.length; i++) {
+      this.buffer[this.writeIndex] = data[i];
+      this.writeIndex = (this.writeIndex + 1) % this.buffer.length;
+      if (this.writeIndex === this.readIndex) {
+        this.readIndex = (this.readIndex + 1) % this.buffer.length;
+      }
+    }
+  }
+
+  read() {
+    const output = [];
+    while (this.readIndex !== this.writeIndex) {
+      output.push(this.buffer[this.readIndex]);
+      this.readIndex = (this.readIndex + 1) % this.buffer.length;
+    }
+    return new Uint8Array(output);
+  }
+
+  async readBytes(length, timeout = 1000) {
+    const output = [];
+    const start = Date.now();
+    while (true) {
+      if (Date.now() - start > timeout) break;
+      if (this.readIndex === this.writeIndex) {
+        await new Promise(r => setTimeout(r, 1));
+        continue;
+      }
+      const value = this.buffer[this.readIndex];
+      this.readIndex = (this.readIndex + 1) % this.buffer.length;
+      output.push(value);
+      if (output.length >= length) break;
+    }
+    return new Uint8Array(output);
+  }
+
+  async readUntil(code, timeout = 1000) {
+    const output = [];
+    const start = Date.now();
+    while (true) {
+      if (Date.now() - start > timeout) break;
+      if (this.readIndex === this.writeIndex) {
+        await new Promise(r => setTimeout(r, 1));
+        continue;
+      }
+      const value = this.buffer[this.readIndex];
+      this.readIndex = (this.readIndex + 1) % this.buffer.length;
+      output.push(value);
+      if (value === code) break;
+    }
+    return new Uint8Array(output);
+  }
+
+  async readUntilString(placeHolder, timeout = 1000) {
+    const output = [];
+    const start = Date.now();
+    while (true) {
+      if (Date.now() - start > timeout) break;
+      if (this.readIndex === this.writeIndex) {
+        await new Promise(r => setTimeout(r, 1));
+        continue;
+      }
+      const value = this.buffer[this.readIndex];
+      this.readIndex = (this.readIndex + 1) % this.buffer.length;
+      output.push(value);
+      if (output.length >= placeHolder.length) {
+        const str = String.fromCharCode(...output.slice(-placeHolder.length));
+        if (str === placeHolder) break;
+      }
+    }
+    return new Uint8Array(output);
+  }
+
+  available() {
+    if (this.writeIndex >= this.readIndex) {
+      return this.writeIndex - this.readIndex;
+    }
+    return this.buffer.length - this.readIndex + this.writeIndex;
+  }
+
+  clear() {
+    this.readIndex = 0;
+    this.writeIndex = 0;
+  }
+}
+
+// ===== GROVE AI: Serial Wrapper (ported from SenseCraft serial.ts) =====
+class GroveSerial {
+  constructor(port) {
+    this.port = port;
+    this.reader = null;
+    this.writer = null;
+    this.encoder = new TextEncoder();
+    this.decoder = new TextDecoder();
+    this.ringBuffer = new GroveRingBuffer(1024 * 1024); // 1MB buffer
+  }
+
+  async readloop() {
+    while (this.reader) {
+      try {
+        const { value, done } = await this.reader.read();
+        if (done) {
+          this.reader.releaseLock();
+          this.reader = null;
+          break;
+        }
+        if (value) this.ringBuffer.write(value);
+      } catch (e) {
+        console.error('Grove AI serial read error:', e);
+        break;
+      }
+    }
+  }
+
+  async open(options) {
+    this.ringBuffer.clear();
+    await this.port.open(options);
+    this.reader = this.port.readable.getReader();
+    this.writer = this.port.writable.getWriter();
+    this.readloop();
+  }
+
+  async close() {
+    try { if (this.reader) { await this.reader.cancel(); this.reader.releaseLock(); } } catch(e) {}
+    try { if (this.writer) { await this.writer.close(); this.writer.releaseLock(); } } catch(e) {}
+    try { await this.port.close(); } catch(e) {}
+    this.reader = null;
+    this.writer = null;
+  }
+
+  async setRTS(value) {
+    await this.port.setSignals({ requestToSend: value });
+  }
+
+  async write(data) {
+    if (this.writer) await this.writer.write(data);
+  }
+
+  async writeString(data) {
+    if (this.writer) await this.writer.write(this.encoder.encode(data));
+  }
+
+  read() {
+    return this.ringBuffer.read();
+  }
+
+  async readBytes(length, timeout = 1000) {
+    return this.ringBuffer.readBytes(length, timeout);
+  }
+
+  async readUntilString(placeHolder, timeout = 1000) {
+    const data = await this.ringBuffer.readUntilString(placeHolder, timeout);
+    if (data) return this.decoder.decode(data);
+    return '';
+  }
+
+  available() { return this.ringBuffer.available(); }
+  clear() { this.ringBuffer.clear(); }
+}
+
+// ===== GROVE AI: Device Manager (ported from SenseCraft device.ts + deviceHimax.ts + atclient.ts) =====
+class GroveAIDevice {
+  constructor() {
+    this.serial = null;
+    this.port = null;
+    this.connected = false;
+    this.invoking = false;
+    this.resolveMap = new Map();
+    this.rejectMap = new Map();
+    this.timeoutMap = new Map();
+    this.eventListeners = new Map();
+    this.textEncoder = new TextEncoder();
+    this.textDecoder = new TextDecoder();
+    this.hasStart = false;
+    this.lastCode = -1;
+    this.cacheData = [];
+    this.watchLoop = false;
+  }
+
+  // AT Command builders
+  static cmd = {
+    getID:       () => 'AT+ID?\r',
+    getName:     () => 'AT+NAME?\r',
+    getVersion:  () => 'AT+VER?\r',
+    getModels:   () => 'AT+MODELS?\r',
+    getModel:    () => 'AT+MODEL?\r',
+    setModel:   (id) => `AT+MODEL=${id}\r`,
+    getScore:    () => 'AT+TSCORE?\r',
+    getIOU:      () => 'AT+TIOU?\r',
+    setScore:  (val) => `AT+TSCORE=${val}\r`,
+    setIOU:    (val) => `AT+TIOU=${val}\r`,
+    invoke:  (times) => `AT+INVOKE=${times},0,0\r`,
+    break:       () => 'AT+BREAK\r',
+    reset:       () => 'AT+RST\r',
+    getInfo:     () => 'AT+INFO?\r',
+  };
+
+  addEventListener(type, listener) { this.eventListeners.set(type, listener); }
+  removeEventListener(type) { this.eventListeners.delete(type); }
+
+  parseAndProcessData(data) {
+    try {
+      const buffer = new Uint8Array(data);
+      const str = this.textDecoder.decode(buffer);
+      const obj = JSON.parse(str);
+      const type = obj?.type;
+      const name = obj?.name;
+
+      if (type === 0) {
+        // Command response
+        const resolve = this.resolveMap.get(name);
+        if (resolve) {
+          resolve(obj);
+          this.deleteMap(name);
+        }
+      } else if (type === 1) {
+        // Event (inference results)
+        const listener = this.eventListeners.get(name);
+        if (listener) listener(obj);
+      }
+    } catch (e) { /* ignore parse errors for partial JSON */ }
+  }
+
+  async readLoop() {
+    while (true) {
+      if (!this.serial || !this.watchLoop) return;
+      if (this.serial.available()) {
+        const data = this.serial.read();
+        let index = 0;
+        while (index < data.length) {
+          const num = data[index];
+          if (num === 0x7b) { // '{'
+            if (this.lastCode === 0x0d || this.lastCode === 0x0a) { // '\r' or '\n'
+              this.hasStart = true;
+              this.cacheData = [num];
+            } else if (this.hasStart) {
+              this.cacheData.push(num);
+            }
+          } else if (num === 0x0a) { // '\n'
+            if (this.lastCode === 0x7d && this.hasStart) { // '}'
+              this.hasStart = false;
+              this.parseAndProcessData([...this.cacheData]);
+              this.cacheData = [];
+            } else if (this.hasStart) {
+              this.cacheData.push(num);
+            }
+          } else if (this.hasStart) {
+            this.cacheData.push(num);
+          }
+          this.lastCode = num;
+          index++;
+        }
+      }
+      await new Promise(r => setTimeout(r, 5));
+    }
+  }
+
+  async sendCommand(command, tag, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+      if (!command) { reject(new Error('invalid parameter')); return; }
+      const timer = setTimeout(() => {
+        this.resolveMap.delete(tag);
+        this.rejectMap.delete(tag);
+        this.timeoutMap.delete(tag);
+        reject(new Error('timeout'));
+      }, timeout);
+      this.timeoutMap.set(tag, timer);
+      this.resolveMap.set(tag, resolve);
+      this.rejectMap.set(tag, reject);
+      this.serial.write(this.textEncoder.encode(command));
+    });
+  }
+
+  deleteMap(tag) {
+    this.resolveMap.delete(tag);
+    this.rejectMap.delete(tag);
+    const timeout = this.timeoutMap.get(tag);
+    if (timeout) { clearTimeout(timeout); this.timeoutMap.delete(tag); }
+  }
+
+  async connect() {
+    if (!navigator.serial) {
+      throw new Error(translate('groveAI.noSerialSupport'));
+    }
+    const serialPort = await navigator.serial.requestPort({
+      filters: [GROVE_AI_FILTER]
+    });
+    this.serial = new GroveSerial(serialPort);
+    await this.serial.open({ baudRate: 921600 });
+    this.watchLoop = true;
+    this.readLoop();
+
+    // Hard reset via RTS
+    await this.serial.setRTS(false);
+    await new Promise(r => setTimeout(r, 100));
+    await this.serial.setRTS(true);
+    await new Promise(r => setTimeout(r, 2000));
+    this.serial.clear();
+
+    this.connected = true;
+  }
+
+  async disconnect() {
+    this.invoking = false;
+    this.watchLoop = false;
+    try { await this.sendCommand(GroveAIDevice.cmd.break(), 'BREAK', 2000); } catch(e) {}
+    if (this.serial) {
+      try { await this.serial.close(); } catch(e) {}
+    }
+    this.serial = null;
+    this.connected = false;
+    // Clean up all pending promises
+    for (const [tag, timer] of this.timeoutMap) { clearTimeout(timer); }
+    this.resolveMap.clear();
+    this.rejectMap.clear();
+    this.timeoutMap.clear();
+  }
+
+  // High-level API methods
+  async getName() {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.getName(), 'NAME?');
+      return resp.code === 0 ? resp.data : null;
+    } catch(e) { return null; }
+  }
+
+  async getVersion() {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.getVersion(), 'VER?');
+      return resp.code === 0 ? (resp.data?.software || resp.data) : null;
+    } catch(e) { return null; }
+  }
+
+  async getModels() {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.getModels(), 'MODELS?');
+      return resp.code === 0 ? resp.data : [];
+    } catch(e) { return []; }
+  }
+
+  async getModel() {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.getModel(), 'MODEL?');
+      return resp.code === 0 ? resp.data : null;
+    } catch(e) { return null; }
+  }
+
+  async setModel(id) {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.setModel(id), 'MODEL', 30000);
+      return resp.code === 0;
+    } catch(e) { return false; }
+  }
+
+  async invoke(times) {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.invoke(times), 'INVOKE', 30000);
+      if (resp.code === 0) {
+        this.invoking = true;
+        return resp.data;
+      }
+      return null;
+    } catch(e) { return null; }
+  }
+
+  async stopInvoke() {
+    try {
+      await this.sendCommand(GroveAIDevice.cmd.break(), 'BREAK', 5000);
+      this.invoking = false;
+    } catch(e) { this.invoking = false; }
+  }
+
+  async setScore(score) {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.setScore(score), 'TSCORE');
+      return resp.code === 0;
+    } catch(e) { return false; }
+  }
+
+  async setIOU(iou) {
+    try {
+      const resp = await this.sendCommand(GroveAIDevice.cmd.setIOU(iou), 'TIOU');
+      return resp.code === 0;
+    } catch(e) { return false; }
+  }
+
+  async setInfo(base64data) {
+    try {
+      const resp = await this.sendCommand(`AT+INFO="${base64data}"\r`, 'INFO');
+      return resp.code === 0;
+    } catch(e) { return false; }
+  }
+
+  async deleteAction() {
+    try {
+      const resp = await this.sendCommand('AT+ACTION="","",""\r', 'ACTION');
+      return resp.code === 0;
+    } catch(e) { return false; }
+  }
+
+  async hardReset() {
+    if (!this.serial) return;
+    await this.serial.setRTS(false);
+    await new Promise(r => setTimeout(r, 100));
+    await this.serial.setRTS(true);
+  }
+
+  async flash(data, offset, onProgress) {
+    if (!this.serial) throw new Error('Not connected');
+
+    // Stop the AT response parser
+    this.watchLoop = false;
+
+    const xmodem = new GroveXmodem({});
+    xmodem.setRead(this.serial.readBytes.bind(this.serial));
+    xmodem.setWrite(this.serial.write.bind(this.serial));
+    if (onProgress) xmodem.setProgress(onProgress);
+
+    // Enter bootloader mode
+    const enterBootloader = async () => {
+      await this.hardReset();
+      this.serial.clear();
+
+      // Send '1' every 10ms to trigger bootloader
+      const timer = setInterval(() => {
+        if (this.serial) this.serial.writeString('1');
+      }, 10);
+
+      try {
+        const str = await this.serial.readUntilString(
+          'Xmodem download and burn FW image', 100
+        );
+        clearInterval(timer);
+        if (str.includes('Xmodem download and burn FW image')) {
+          this.serial.writeString('1');
+        } else {
+          throw new Error('No bootloader response from device');
+        }
+      } catch(e) {
+        clearInterval(timer);
+        throw e;
+      }
+
+      await new Promise(r => setTimeout(r, 100));
+      this.serial.clear();
+    };
+
+    // Wait for flash completion prompt
+    const flashComplete = async (reset) => {
+      const str = await this.serial.readUntilString(
+        'Do you want to end file transmission and reboot system', 10000
+      );
+      if (str.includes('Do you want to end file transmission and reboot system')) {
+        this.serial.writeString(reset);
+      } else {
+        throw new Error('No reboot prompt from device');
+      }
+    };
+
+    try {
+      await enterBootloader();
+
+      // If flashing to a non-zero offset (model slot), send config packet first
+      if (offset !== 0) {
+        const config = new Uint8Array(128);
+        config.fill(0xFF);
+        config[0] = 0xC0;
+        config[1] = 0x5A;
+        config[2] = offset & 0xFF;
+        config[3] = (offset >> 8) & 0xFF;
+        config[4] = (offset >> 16) & 0xFF;
+        config[5] = (offset >> 24) & 0xFF;
+        config[6] = 0x00;
+        config[7] = 0x00;
+        config[8] = 0x00;
+        config[9] = 0x00;
+        config[10] = 0x5A;
+        config[11] = 0xC0;
+        this.serial.clear();
+        await xmodem.send(config);
+        await flashComplete('n'); // Don't reboot yet
+      }
+
+      // Send actual model data
+      this.serial.clear();
+      await xmodem.send(data);
+
+      // Flash complete, reboot device
+      await flashComplete('y');
+
+    } catch(e) {
+      this.watchLoop = true;
+      throw e;
+    }
+
+    // Re-enable AT response parsing and wait for device reboot
+    this.watchLoop = true;
+    this.readLoop();
+    await new Promise(r => setTimeout(r, 3000));
+  }
+}
+
+// ===== GROVE AI: CRC-16-XMODEM (pure JS implementation) =====
+function crc16xmodem(data) {
+  let crc = 0x0000;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= data[i] << 8;
+    for (let j = 0; j < 8; j++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+    }
+    crc &= 0xFFFF;
+  }
+  return crc;
+}
+
+// ===== GROVE AI: Xmodem Protocol (ported from SenseCraft xmodem.ts) =====
+class GroveXmodem {
+  constructor(options = {}) {
+    this.SOH = 0x01;
+    this.EOT = 0x04;
+    this.ACK = 0x06;
+    this.NAK = 0x15;
+    this.CAN = 0x18;
+    this.CRC_MODE = 0x43; // 'C'
+    this.FILLER = 0x1a;
+    this.blocksize = options.blocksize || 128;
+    this.maxTimeouts = options.maxTimeouts || 10;
+    this.maxErrors = options.maxErrors || 30;
+    this.crcAttempts = options.crcAttempts || 5;
+    this.startBlock = options.startBlock || 1;
+    this.timeoutSeconds = options.timeoutSeconds || 60;
+    this.readFn = null;
+    this.writeFn = null;
+    this.progressFn = null;
+    this.mode = 'xmodem';
+  }
+
+  setRead(fn) { this.readFn = fn; }
+  setWrite(fn) { this.writeFn = fn; }
+  setProgress(fn) { this.progressFn = fn; }
+
+  createPacket(block, data) {
+    const packet = new Uint8Array(this.blocksize + 5);
+    packet[0] = this.SOH;
+    packet[1] = block & 0xFF;
+    packet[2] = 0xFF - (block & 0xFF);
+    packet.set(data, 3);
+    if (this.mode === 'crc') {
+      const crc = crc16xmodem(data);
+      packet[this.blocksize + 3] = (crc >> 8) & 0xFF;
+      packet[this.blocksize + 4] = crc & 0xFF;
+    } else {
+      let checksum = 0;
+      for (let i = 0; i < this.blocksize; i++) checksum += data[i];
+      packet[this.blocksize + 3] = checksum & 0xFF;
+    }
+    return packet;
+  }
+
+  async send(data) {
+    if (!this.readFn || !this.writeFn) throw new Error('Read/Write not set');
+    const timeout = this.timeoutSeconds * 1000;
+    const total = Math.ceil(data.length / this.blocksize);
+    let block = this.startBlock;
+    let errors = 0;
+    let timeouts = 0;
+    let crcAttempts = 0;
+    let offset = 0;
+
+    // Phase 1: Wait for receiver to send 'C' (CRC mode)
+    while (true) {
+      const value = await this.readFn(1, timeout);
+      if (value[0] === this.CRC_MODE) {
+        this.mode = 'crc';
+        break;
+      }
+      timeouts++;
+      if (timeouts > this.maxTimeouts) throw new Error('Xmodem: too many timeouts waiting for start');
+    }
+
+    // Phase 2: Send blocks
+    while (offset < data.length) {
+      const buffer = new Uint8Array(this.blocksize);
+      buffer.fill(this.FILLER);
+      buffer.set(data.slice(offset, offset + this.blocksize));
+      const packet = this.createPacket(block, buffer);
+      await this.writeFn(packet);
+      const resp = await this.readFn(1, timeout);
+      const code = resp[0];
+
+      if (code === this.ACK) {
+        if (this.progressFn) this.progressFn(block, total, Math.floor((block / total) * 100));
+        block++;
+        offset += this.blocksize;
+        errors = 0;
+        crcAttempts = 0;
+      } else if (code === this.NAK) {
+        errors++;
+        if (errors > this.maxErrors) throw new Error('Xmodem: too many errors');
+      } else if (code === this.CAN) {
+        throw new Error('Xmodem: transfer canceled by receiver');
+      } else {
+        timeouts++;
+        if (timeouts > this.maxTimeouts) throw new Error('Xmodem: too many timeouts');
+        if (this.mode === 'crc' && crcAttempts < this.crcAttempts) {
+          crcAttempts++;
+        } else {
+          throw new Error('Xmodem: too many timeouts');
+        }
+      }
+    }
+
+    // Phase 3: Send EOT and wait for ACK
+    errors = 0;
+    timeouts = 0;
+    while (true) {
+      const eot = new Uint8Array([this.EOT]);
+      await this.writeFn(eot);
+      const resp = await this.readFn(1, timeout);
+      if (resp[0] === this.ACK) break;
+      if (resp[0] === this.NAK) {
+        errors++;
+        if (errors > this.maxErrors) throw new Error('Xmodem: too many errors at EOT');
+      } else {
+        timeouts++;
+        if (timeouts > this.maxTimeouts) throw new Error('Xmodem: timeout at EOT');
+      }
+    }
+  }
+}
+
+// ===== GROVE AI: UI Control Functions =====
+
+function toggleGroveAIMode() {
+  groveAIEnabled = document.getElementById('grove-ai-enabled').checked;
+  const content = document.getElementById('grove-ai-content');
+  content.classList.toggle('visible', groveAIEnabled);
+
+  if (groveAIEnabled) {
+    // Dim webcam-based training UI when hardware mode is active
+    const activeClassSection = document.getElementById('step-active-class');
+    const trainingSection = document.getElementById('step-training');
+    if (activeClassSection) { activeClassSection.style.opacity = '0.4'; activeClassSection.style.pointerEvents = 'none'; }
+    if (trainingSection) { trainingSection.style.opacity = '0.4'; trainingSection.style.pointerEvents = 'none'; }
+  } else {
+    // Re-enable webcam training
+    const activeClassSection = document.getElementById('step-active-class');
+    const trainingSection = document.getElementById('step-training');
+    if (activeClassSection) { activeClassSection.style.opacity = '1'; activeClassSection.style.pointerEvents = 'auto'; }
+    if (trainingSection) { trainingSection.style.opacity = '1'; trainingSection.style.pointerEvents = 'auto'; }
+
+    // Stop inference and disconnect if active
+    if (groveAIDevice && groveAIDevice.connected) {
+      groveAIStopInference();
+      groveAIDisconnect();
+    }
+
+    // Hide canvases, show videos
+    hideGroveAICanvases();
+  }
+}
+
+async function groveAIConnect() {
+  try {
+    updateGroveAIStatus('connecting');
+    groveAIDevice = new GroveAIDevice();
+    await groveAIDevice.connect();
+
+    // Get device info
+    const [name, version] = await Promise.all([
+      groveAIDevice.getName(),
+      groveAIDevice.getVersion()
+    ]);
+
+    document.getElementById('grove-ai-name').textContent = name || 'Grove Vision AI V2';
+    document.getElementById('grove-ai-version').textContent = version || '-';
+
+    updateGroveAIStatus('connected');
+    showGroveAIConnectedUI();
+
+    // Try to get models from the device first
+    const deviceModels = await groveAIDevice.getModels();
+    if (deviceModels && deviceModels.length > 0) {
+      groveAIModels = deviceModels;
+      renderGroveAIModels();
+    } else {
+      // Fallback: fetch model catalog from Seeed Studio
+      await fetchGroveAIModels();
+    }
+
+    // Register event listener for inference results
+    groveAIDevice.addEventListener('INVOKE', onGroveAIInvokeResult);
+
+  } catch (error) {
+    console.error('Grove AI connection failed:', error);
+    updateGroveAIStatus('failed');
+    groveAIDevice = null;
+  }
+}
+
+async function groveAIDisconnect() {
+  if (groveAIDevice) {
+    groveAIDevice.removeEventListener('INVOKE');
+    await groveAIDevice.disconnect();
+    groveAIDevice = null;
+  }
+  updateGroveAIStatus('disconnected');
+  hideGroveAIConnectedUI();
+  hideGroveAICanvases();
+}
+
+function updateGroveAIStatus(state) {
+  const dot = document.getElementById('grove-ai-status-dot');
+  const text = document.getElementById('grove-ai-status-text');
+  if (!dot || !text) return;
+
+  dot.classList.remove('connected');
+
+  switch(state) {
+    case 'connecting':
+      text.textContent = translate('groveAI.connecting');
+      break;
+    case 'connected':
+      dot.classList.add('connected');
+      text.textContent = translate('groveAI.connected');
+      break;
+    case 'disconnected':
+      text.textContent = translate('groveAI.disconnected');
+      break;
+    case 'failed':
+      text.textContent = translate('groveAI.connectionFailed');
+      break;
+    default:
+      text.textContent = translate('groveAI.notConnected');
+  }
+}
+
+function showGroveAIConnectedUI() {
+  document.getElementById('grove-ai-connect').style.display = 'none';
+  document.getElementById('grove-ai-disconnect').style.display = 'inline-flex';
+  document.getElementById('grove-ai-device-info').style.display = 'block';
+  document.getElementById('grove-ai-model-section').style.display = 'block';
+  document.getElementById('grove-ai-thresholds').style.display = 'block';
+  document.getElementById('grove-ai-invoke-section').style.display = 'block';
+  document.getElementById('grove-ai-flash-section').style.display = 'block';
+  checkConvertButtonVisibility();
+}
+
+function hideGroveAIConnectedUI() {
+  document.getElementById('grove-ai-connect').style.display = 'inline-flex';
+  document.getElementById('grove-ai-disconnect').style.display = 'none';
+  document.getElementById('grove-ai-device-info').style.display = 'none';
+  document.getElementById('grove-ai-model-section').style.display = 'none';
+  document.getElementById('grove-ai-thresholds').style.display = 'none';
+  document.getElementById('grove-ai-invoke-section').style.display = 'none';
+  document.getElementById('grove-ai-flash-section').style.display = 'none';
+  // Reset flash state on disconnect
+  groveAITfliteData = null;
+  document.getElementById('grove-ai-flash-meta').style.display = 'none';
+  document.getElementById('grove-ai-flash-btn').style.display = 'none';
+  document.getElementById('grove-ai-flash-progress').style.display = 'none';
+  document.getElementById('grove-ai-tflite-file').value = '';
+}
+
+async function fetchGroveAIModels() {
+  try {
+    const response = await fetch(`${GROVE_AI_MODELS_URL}?t=${Date.now()}`);
+    const data = await response.json();
+    groveAIModels = data || [];
+    if (Array.isArray(data)) {
+      groveAIModels = data;
+    } else if (data.models) {
+      groveAIModels = data.models;
+    }
+    renderGroveAIModels();
+  } catch (error) {
+    console.error('Failed to fetch Grove AI models:', error);
+    groveAIModels = [];
+    renderGroveAIModels();
+  }
+}
+
+function renderGroveAIModels() {
+  const container = document.getElementById('grove-ai-models');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!groveAIModels || groveAIModels.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:#999;padding:10px;">${translate('groveAI.noModelsAvailable')}</div>`;
+    return;
+  }
+
+  groveAIModels.forEach((model, index) => {
+    const card = document.createElement('div');
+    card.className = 'grove-ai-model-card' + (index === groveAISelectedModelIndex ? ' selected' : '');
+    card.onclick = () => selectGroveAIModel(index);
+
+    const name = model.name || model.model_name || `Model ${index}`;
+    const algo = model.algorithm || model.category || model.model_type || '';
+    const cls = (model.classes || []).slice(0, 5).join(', ');
+    const clsSuffix = (model.classes || []).length > 5 ? '...' : '';
+
+    card.innerHTML = `
+      <div class="model-name">${name}</div>
+      ${algo ? `<div class="model-detail">${algo}</div>` : ''}
+      ${cls ? `<div class="model-detail">${cls}${clsSuffix}</div>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function selectGroveAIModel(index) {
+  groveAISelectedModelIndex = index;
+  document.querySelectorAll('.grove-ai-model-card').forEach((card, i) => {
+    card.classList.toggle('selected', i === index);
+  });
+}
+
+async function groveAISendModel() {
+  if (groveAISelectedModelIndex < 0 || !groveAIDevice?.connected) return;
+
+  showNotification(translate('groveAI.loadingModels'));
+
+  try {
+    const result = await groveAIDevice.setModel(groveAISelectedModelIndex);
+    if (result) {
+      showNotification(translate('groveAI.modelLoaded'));
+    } else {
+      showNotification(translate('groveAI.modelLoadFailed'));
+    }
+  } catch (e) {
+    console.error('Failed to send model:', e);
+    showNotification(translate('groveAI.modelLoadFailed'));
+  }
+}
+
+async function groveAIStartInference() {
+  if (!groveAIDevice?.connected) return;
+
+  // Set thresholds first
+  const score = parseInt(document.getElementById('grove-ai-score').value);
+  const iou = parseInt(document.getElementById('grove-ai-iou').value);
+  await groveAIDevice.setScore(score);
+  await groveAIDevice.setIOU(iou);
+
+  // Start continuous inference
+  const result = await groveAIDevice.invoke(-1);
+  if (result !== null) {
+    document.getElementById('grove-ai-invoke').style.display = 'none';
+    document.getElementById('grove-ai-stop').style.display = 'inline-flex';
+    showGroveAICanvases();
+    showNotification(translate('groveAI.inferenceRunning'));
+  }
+}
+
+async function groveAIStopInference() {
+  if (!groveAIDevice) return;
+  await groveAIDevice.stopInvoke();
+  document.getElementById('grove-ai-invoke').style.display = 'inline-flex';
+  document.getElementById('grove-ai-stop').style.display = 'none';
+  hideGroveAICanvases();
+  showNotification(translate('groveAI.inferenceStopped'));
+}
+
+function showGroveAICanvases() {
+  // Show canvas, hide video in the currently visible views
+  const trainCanvas = document.getElementById('grove-ai-canvas-train');
+  const applyCanvas = document.getElementById('grove-ai-canvas-apply');
+  const trainVideo = document.getElementById('webcam');
+  const applyVideo = document.getElementById('webcam-apply');
+
+  if (trainCanvas) trainCanvas.style.display = 'block';
+  if (applyCanvas) applyCanvas.style.display = 'block';
+  if (trainVideo) trainVideo.style.display = 'none';
+  if (applyVideo) applyVideo.style.display = 'none';
+}
+
+function hideGroveAICanvases() {
+  const trainCanvas = document.getElementById('grove-ai-canvas-train');
+  const applyCanvas = document.getElementById('grove-ai-canvas-apply');
+  const trainVideo = document.getElementById('webcam');
+  const applyVideo = document.getElementById('webcam-apply');
+  const inferenceInfo = document.getElementById('grove-ai-inference-info');
+
+  if (trainCanvas) trainCanvas.style.display = 'none';
+  if (applyCanvas) applyCanvas.style.display = 'none';
+  if (trainVideo) trainVideo.style.display = '';
+  if (applyVideo) applyVideo.style.display = '';
+  if (inferenceInfo) inferenceInfo.style.display = 'none';
+}
+
+// Inference result handler (ported from SenseCraft Preview.vue onInvoke)
+function onGroveAIInvokeResult(resp) {
+  if (resp.code !== 0) {
+    groveAIStopInference();
+    return;
+  }
+
+  const data = resp.data;
+  if (!data) return;
+
+  const model = groveAISelectedModelIndex >= 0 ? groveAIModels[groveAISelectedModelIndex] : null;
+  const modelClasses = model?.classes || [];
+
+  if (data.image) {
+    groveAIFrameImg.onload = () => {
+      // Draw on all visible canvases
+      const canvasIds = ['grove-ai-canvas-train', 'grove-ai-canvas-apply'];
+      for (const canvasId of canvasIds) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || canvas.style.display === 'none') continue;
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = groveAIFrameImg.width;
+        canvas.height = groveAIFrameImg.height;
+        ctx.drawImage(groveAIFrameImg, 0, 0);
+
+        // Draw bounding boxes (YOLO/FOMO detection results)
+        if (data.boxes) {
+          for (let i = 0; i < data.boxes.length; i++) {
+            const rect = data.boxes[i];
+            if (rect?.length >= 5) {
+              const [x, y, w, h, score] = rect;
+              const tar = rect.length >= 6 ? parseInt(rect[5], 10) : 0;
+              const color = GROVE_COLORS[tar % GROVE_COLORS.length];
+              const label = tar < modelClasses.length ? modelClasses[tar] : `${tar}`;
+
+              // Draw box (center-x, center-y, width, height format)
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 2;
+              ctx.strokeRect(x - w/2, y - h/2, w, h);
+
+              // Draw label background
+              ctx.fillStyle = color;
+              const labelHeight = 16;
+              const textWidth = ctx.measureText(`${label}: ${score}`).width + 6;
+              ctx.fillRect(x - w/2, y - h/2 - labelHeight, textWidth, labelHeight);
+
+              // Draw label text
+              ctx.font = 'bold 12px Arial, sans-serif';
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(`${label}: ${score}`, x - w/2 + 3, y - h/2 - 4);
+            }
+          }
+        }
+
+        // Draw classification results
+        if (data.classes && data.classes.length > 0) {
+          for (let i = 0; i < data.classes.length; i++) {
+            const [score, tar] = data.classes[i];
+            const label = tar < modelClasses.length ? modelClasses[tar] : `${tar}`;
+            const color = GROVE_COLORS[tar % GROVE_COLORS.length];
+            const barW = canvas.width / data.classes.length;
+
+            ctx.globalAlpha = 0.35;
+            ctx.fillStyle = color;
+            ctx.fillRect(barW * i, 0, barW, canvas.height / 10);
+            ctx.globalAlpha = 1;
+            ctx.font = `bold ${Math.max(12, canvas.height / 16)}px Arial, sans-serif`;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(`${label}: ${score}`, barW * i + 4, canvas.height / 14);
+          }
+        }
+      }
+
+      // Update inference info in apply view
+      updateGroveAIInferenceInfo(data, modelClasses);
+
+      // Send top detection/classification to Calliope mini via BLE
+      sendGroveAIToCalliope(data, modelClasses);
+    };
+
+    groveAIFrameImg.src = `data:image/jpeg;base64,${data.image}`;
+  }
+}
+
+function updateGroveAIInferenceInfo(data, modelClasses) {
+  const infoDiv = document.getElementById('grove-ai-inference-info');
+  if (!infoDiv) return;
+
+  let text = '';
+  if (data.boxes && data.boxes.length > 0) {
+    text = `${data.boxes.length} ${translate('groveAI.objectsDetected')}`;
+  }
+  if (data.classes && data.classes.length > 0) {
+    const top = data.classes.reduce((a, b) => a[0] > b[0] ? a : b);
+    const cls = top[1] < modelClasses.length ? modelClasses[top[1]] : `${top[1]}`;
+    text = `${cls}: ${(top[0] * 100).toFixed(0)}%`;
+  }
+
+  if (text) {
+    infoDiv.textContent = text;
+    infoDiv.style.display = 'block';
+  } else {
+    infoDiv.style.display = 'none';
+  }
+}
+
+function sendGroveAIToCalliope(data, modelClasses) {
+  // If BLE is connected, send the top detection/classification to Calliope mini
+  if (!rxCharacteristic || !uBitDevice?.gatt?.connected) return;
+
+  let detectedClass = null;
+  let confidence = 0;
+
+  if (data.boxes && data.boxes.length > 0) {
+    // Send the highest-confidence detection
+    const best = data.boxes.reduce((a, b) => (a[4] || 0) > (b[4] || 0) ? a : b);
+    const tar = best.length >= 6 ? parseInt(best[5], 10) : 0;
+    detectedClass = tar < modelClasses.length ? modelClasses[tar] : `obj_${tar}`;
+    confidence = best[4] || 0;
+  } else if (data.classes && data.classes.length > 0) {
+    const top = data.classes.reduce((a, b) => a[0] > b[0] ? a : b);
+    const tar = top[1];
+    detectedClass = tar < modelClasses.length ? modelClasses[tar] : `cls_${tar}`;
+    confidence = top[0];
+  }
+
+  if (detectedClass && confidence >= CONFIG.MIN_PREDICTION_CONFIDENCE) {
+    sendPrediction(detectedClass, confidence);
+  }
+}
+
+// ===== GROVE AI: Flash / Conversion Functions =====
+
+function onTfliteFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    groveAITfliteData = new Uint8Array(e.target.result);
+    // Show metadata inputs and flash button
+    document.getElementById('grove-ai-flash-meta').style.display = 'block';
+    document.getElementById('grove-ai-flash-btn').style.display = 'block';
+    // Pre-fill model name from filename
+    const name = file.name.replace(/\.(tflite|lite)$/i, '');
+    document.getElementById('grove-ai-model-name').value = name;
+    document.getElementById('grove-ai-flash-status').textContent =
+      `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    document.getElementById('grove-ai-flash-progress').style.display = 'block';
+    document.getElementById('grove-ai-progress-fill').style.width = '0%';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function groveAIConvertCurrentModel() {
+  if (!classifierModel) {
+    alert(translate('groveAI.noModelTrained'));
+    return;
+  }
+
+  const statusEl = document.getElementById('grove-ai-flash-status');
+  const progressDiv = document.getElementById('grove-ai-flash-progress');
+  const progressFill = document.getElementById('grove-ai-progress-fill');
+  const convertBtn = document.getElementById('grove-ai-convert-model');
+
+  try {
+    convertBtn.disabled = true;
+    progressDiv.style.display = 'block';
+    progressFill.style.width = '10%';
+    statusEl.textContent = translate('groveAI.convertingModel');
+
+    // Extract model artifacts using TF.js save handler
+    let modelTopology, weightSpecs, weightData;
+    await classifierModel.save(tf.io.withSaveHandler(async (artifacts) => {
+      modelTopology = artifacts.modelTopology;
+      weightSpecs = artifacts.weightSpecs;
+      weightData = artifacts.weightData;
+      return { modelArtifactsInfo: { dateSaved: new Date() } };
+    }));
+
+    progressFill.style.width = '30%';
+
+    // Build the model.json in the format tensorflowjs expects
+    const modelJson = JSON.stringify({
+      modelTopology: modelTopology,
+      weightsManifest: [{
+        paths: ['weights.bin'],
+        weights: weightSpecs
+      }],
+      format: 'layers-model',
+      generatedBy: 'TensorFlow.js v4.11.0',
+      convertedBy: null
+    });
+
+    // Build form data for server
+    const formData = new FormData();
+    formData.append('model_json', new Blob([modelJson], { type: 'application/json' }), 'model.json');
+    formData.append('weights_bin', new Blob([weightData], { type: 'application/octet-stream' }), 'weights.bin');
+    formData.append('metadata', JSON.stringify({
+      classes: classes,
+      input_shape: [1, 1024] // MobileNet embedding size
+    }));
+
+    progressFill.style.width = '50%';
+    statusEl.textContent = translate('groveAI.convertingModel') + ' (server)';
+
+    // Send to conversion server
+    const response = await fetch(GROVE_AI_CONVERSION_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(errText || `Server error: ${response.status}`);
+    }
+
+    const tfliteBlob = await response.blob();
+    const arrayBuffer = await tfliteBlob.arrayBuffer();
+    groveAITfliteData = new Uint8Array(arrayBuffer);
+
+    progressFill.style.width = '100%';
+    statusEl.textContent = `${translate('groveAI.flashNoteClassifier')} (${(groveAITfliteData.length / 1024).toFixed(1)} KB)`;
+
+    // Show metadata + flash button, pre-fill from training data
+    document.getElementById('grove-ai-flash-meta').style.display = 'block';
+    document.getElementById('grove-ai-flash-btn').style.display = 'block';
+    document.getElementById('grove-ai-model-name').value = modelMetadata.name || 'TM_Classifier';
+    document.getElementById('grove-ai-class-labels').value = classes.join(', ');
+
+  } catch (err) {
+    console.error('Model conversion failed:', err);
+    let errorMsg = translate('groveAI.conversionFailed') + ' ' + err.message;
+    if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+      errorMsg += '\n' + translate('groveAI.conversionServerHint');
+    }
+    statusEl.textContent = errorMsg;
+    progressFill.style.width = '0%';
+  } finally {
+    convertBtn.disabled = false;
+  }
+}
+
+async function groveAIFlashModel() {
+  if (!groveAIDevice || !groveAIDevice.connected) {
+    alert(translate('groveAI.notConnected'));
+    return;
+  }
+  if (!groveAITfliteData) {
+    alert(translate('groveAI.uploadTflite'));
+    return;
+  }
+
+  const modelName = document.getElementById('grove-ai-model-name').value.trim();
+  const classLabelsStr = document.getElementById('grove-ai-class-labels').value.trim();
+  if (!modelName) {
+    alert(translate('groveAI.modelName'));
+    return;
+  }
+
+  const classLabels = classLabelsStr ? classLabelsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const statusEl = document.getElementById('grove-ai-flash-status');
+  const progressFill = document.getElementById('grove-ai-progress-fill');
+  const flashBtn = document.getElementById('grove-ai-flash-btn');
+  const progressDiv = document.getElementById('grove-ai-flash-progress');
+
+  groveAIFlashing = true;
+  flashBtn.disabled = true;
+  progressDiv.style.display = 'block';
+  progressFill.style.width = '0%';
+  statusEl.textContent = translate('groveAI.enteringBootloader');
+
+  try {
+    // Stop any running inference
+    if (groveAIDevice.invoking) {
+      await groveAIDevice.stopInvoke();
+    }
+
+    // Flash the model
+    await groveAIDevice.flash(groveAITfliteData, GROVE_AI_MODEL_FLASH_ADDR, (block, total, percent) => {
+      progressFill.style.width = percent + '%';
+      statusEl.textContent = `${translate('groveAI.flashingModel')} ${percent}%`;
+    });
+
+    // Post-flash: store metadata on device
+    statusEl.textContent = translate('groveAI.flashingModel') + ' (metadata)';
+    const modelMeta = {
+      name: modelName,
+      version: '1.0.0',
+      category: 'Object Detection',
+      model_type: 'TFLite',
+      algorithm: 'YOLO',
+      description: 'Custom Model',
+      classes: classLabels,
+      size: groveAITfliteData.length.toString(),
+      isCustom: true
+    };
+    const base64Info = btoa(JSON.stringify(modelMeta));
+    await groveAIDevice.setInfo(base64Info);
+    await groveAIDevice.deleteAction();
+
+    progressFill.style.width = '100%';
+    statusEl.textContent = translate('groveAI.flashComplete');
+
+  } catch (err) {
+    console.error('Flash failed:', err);
+    statusEl.textContent = translate('groveAI.flashFailed') + ' ' + err.message;
+    progressFill.style.width = '0%';
+  } finally {
+    groveAIFlashing = false;
+    flashBtn.disabled = false;
+  }
+}
+
+function checkConvertButtonVisibility() {
+  const convertBtn = document.getElementById('grove-ai-convert-model');
+  if (convertBtn) {
+    // Show convert button only if we have a trained model and the device is connected
+    const show = classifierModel !== null && groveAIDevice && groveAIDevice.connected;
+    convertBtn.style.display = show ? 'block' : 'none';
+  }
+}
 
 // Progressive reveal state
 function updateProgressiveUI() {
@@ -3077,9 +4844,14 @@ function switchView(viewName) {
     initSharedCamera();
   }
 
+  // Grove AI: If enabled and invoking, ensure correct canvas is visible
+  if (groveAIEnabled && groveAIDevice?.invoking) {
+    showGroveAICanvases();
+  }
+
   // Im ANWENDEN-View Vorhersage automatisch aktivieren
   if (viewName === 'apply') {
-    if (!isTryoutActive && classifierModel) {
+    if (!isTryoutActive && classifierModel && !groveAIEnabled) {
       isTryoutActive = true;
       tryoutInterval = setInterval(tryoutModel, testRate);
     }
@@ -3411,6 +5183,10 @@ function stopGlobalCamera() {
       const v = document.getElementById(id);
       if (v) v.srcObject = null;
     });
+  }
+  // Also hide Grove AI canvases when stopping camera
+  if (typeof hideGroveAICanvases === 'function') {
+    hideGroveAICanvases();
   }
 }
 
@@ -5443,6 +7219,9 @@ async function trainModel() {
 
     console.log('Training completed successfully');
 
+    // Update Grove AI convert button visibility after training
+    checkConvertButtonVisibility();
+
   } catch (error) {
     console.error("Training error:", error);
     const status = document.getElementById("train-status");
@@ -5660,14 +7439,52 @@ document.querySelector('.header-btn[data-view="training"]')
   // Bluetooth scan button
   document.getElementById('scan-bluetooth').onclick = connectButtonPressed;
   document.getElementById('disconnect-bluetooth').onclick = disconnectButtonPressed;
-  
 
+  // ===== Grove AI event handlers =====
+  document.getElementById('grove-ai-enabled').addEventListener('change', toggleGroveAIMode);
+  document.getElementById('grove-ai-connect').onclick = groveAIConnect;
+  document.getElementById('grove-ai-disconnect').onclick = groveAIDisconnect;
+  document.getElementById('grove-ai-send-model').onclick = groveAISendModel;
+  document.getElementById('grove-ai-invoke').onclick = groveAIStartInference;
+  document.getElementById('grove-ai-stop').onclick = groveAIStopInference;
 
+  // Grove AI Flash event handlers
+  document.getElementById('grove-ai-tflite-file').addEventListener('change', onTfliteFileSelected);
+  document.getElementById('grove-ai-convert-model').onclick = groveAIConvertCurrentModel;
+  document.getElementById('grove-ai-flash-btn').onclick = groveAIFlashModel;
+
+  // Grove AI threshold slider live updates
+  document.getElementById('grove-ai-score').addEventListener('input', (e) => {
+    document.getElementById('grove-ai-score-value').textContent = e.target.value + '%';
+  });
+  document.getElementById('grove-ai-iou').addEventListener('input', (e) => {
+    document.getElementById('grove-ai-iou-value').textContent = e.target.value + '%';
+  });
+
+  // Disable Grove AI checkbox if Web Serial API is not supported
+  if (!navigator.serial) {
+    const groveCheckbox = document.getElementById('grove-ai-enabled');
+    groveCheckbox.disabled = true;
+    groveCheckbox.parentElement.style.opacity = '0.5';
+    groveCheckbox.parentElement.title = translate('groveAI.noSerialSupport');
+  }
 
 init();
 
   // Initialize help text on page load
   updateHelpText();
+});
+
+// Clean up Grove AI serial connection on page unload
+window.addEventListener('beforeunload', async () => {
+  if (groveAIDevice && groveAIDevice.connected) {
+    try {
+      await groveAIDevice.stopInvoke();
+      await groveAIDevice.disconnect();
+    } catch (e) {
+      // Ignore errors during cleanup
+    }
+  }
 });
 
 </script>
